@@ -1,16 +1,17 @@
-const pool = require('./db');
+const express = require('express');
+const pool = require('../config/db');
+const { requireAuth, requireRole } = require('../config/auth-middleware');
 
-// Records who did what. Call this from any route that changes money or
-// account state — never let it throw and break the actual request.
-async function logAction({ staff_id, action, target_type, target_id, details }) {
-  try {
-    await pool.query(
-      `INSERT INTO audit_log (staff_id, action, target_type, target_id, details) VALUES ($1, $2, $3, $4, $5)`,
-      [staff_id, action, target_type, target_id, details || null]
-    );
-  } catch (err) {
-    console.error('Failed to write audit log entry:', err);
-  }
-}
+const router = express.Router();
 
-module.exports = { logAction };
+// GET /api/audit — admin: who did what, most recent first
+router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
+  const result = await pool.query(
+    `SELECT a.audit_id, a.action, a.target_type, a.target_id, a.details, a.created_at, s.name AS staff_name
+     FROM audit_log a JOIN staff s ON s.staff_id = a.staff_id
+     ORDER BY a.created_at DESC LIMIT 200`
+  );
+  res.json(result.rows);
+});
+
+module.exports = router;
