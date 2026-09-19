@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Busitema Canteen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --green-900:#16332A; --green-700:#1F4A3D; --gold-500:#E3A857; --ink:#201C16; --paper:#FFFDF9; --paper-dim:#F2EFE7; --line:#E3DFD3; --red:#C24E3D; --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); }
+  .login-wrap { max-width:340px; margin:80px auto; padding:0 20px; }
+  h2 { font-family:var(--font-display); }
+  input { width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px; }
+  button { padding:9px 16px; border:none; border-radius:9px; background:var(--green-700); color:white; font-weight:700; cursor:pointer; font-family:var(--font-body); transition: transform .12s ease, background .15s ease, box-shadow .15s ease; }
+  button:hover { background:var(--gold-600); box-shadow:0 4px 12px rgba(201,143,62,0.3); }
+  button:active { transform:scale(0.96); }
+  .error { color:var(--red); font-size:0.85rem; margin-bottom:10px; }
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:200px; background:var(--green-900); color:#EDEAE0; padding:20px 14px; }
+  .sb-item { padding:10px 12px; border-radius:9px; cursor:pointer; font-weight:600; font-size:0.87rem; transition: background .15s ease, transform .12s ease; }
+  .sb-item:hover { background:rgba(255,255,255,0.06); transform:translateX(2px); }
+  .sb-item.active { background:rgba(227,168,87,0.15); color:var(--gold-500); }
+  .main { flex:1; padding:26px 32px; }
+  .view { display:none; animation: viewIn .3s ease both; }
+  .view.active { display:block; }
+  @keyframes viewIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
+  table { width:100%; border-collapse:collapse; background:var(--paper-dim); border-radius:12px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 14px; font-size:0.85rem; border-bottom:1px solid var(--line); }
+  tr { transition: background .12s ease; }
+  tbody tr:hover { background:rgba(31,74,61,0.05); }
+  .toggle { width:38px; height:21px; border-radius:999px; background:var(--line); position:relative; cursor:pointer; display:inline-block; transition: background .2s ease; }
+  .toggle.on { background:#2C6350; }
+  .toggle::after { content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:white; transition: left .2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .toggle.on::after { left:19px; }
+  .dispute-card { background:var(--paper-dim); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:12px; transition: transform .15s ease, box-shadow .15s ease; animation: viewIn .3s ease both; }
+  .dispute-card:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(31,74,61,0.1); }
+  .hidden { display:none !important; }
+  .da-refund { background:var(--red); margin-right:6px; }
+  .da-refund:hover { background:#a5382a; }
+  .da-resolve { background:#2C6350; margin-right:6px; }
+  .da-resolve:hover { background:#1F4A3D; }
+  .da-reject { background:var(--paper); border:1px solid var(--line); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginView">
+  <h2>Admin login</h2>
+  <div class="error hidden" id="loginError"></div>
+  <input id="staffName" placeholder="Staff username">
+  <input id="staffPassword" type="password" placeholder="Password">
+  <button style="width:100%;" onclick="login()">Log in</button>
+</div>
+
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <div class="sb-item active" data-view="menu">🍽️ Menu</div>
+    <div class="sb-item" data-view="transactions">💳 Transactions</div>
+    <div class="sb-item" data-view="disputes">⚠️ Disputes</div>
+    <div class="sb-item" data-view="staff">👤 Staff</div>
+    <div class="sb-item" data-view="audit">📜 Audit Log</div>
+  </div>
+  <div class="main">
+    <div class="view active" id="view-menu">
+      <h2>Menu Management</h2>
+      <table><thead><tr><th>Photo</th><th>Item</th><th>Price</th><th>Stock</th><th>Available</th></tr></thead><tbody id="menuBody"></tbody></table>
+    </div>
+    <div class="view" id="view-transactions">
+      <h2>Transactions</h2>
+      <a href="#" id="exportLink" style="font-size:0.85rem; font-weight:700; color:var(--green-700);" onclick="exportCsv(); return false;">⬇ Export CSV</a>
+      <table style="margin-top:12px;"><thead><tr><th>Time</th><th>Student</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead><tbody id="txnBody"></tbody></table>
+    </div>
+    <div class="view" id="view-disputes">
+      <h2>Disputes</h2>
+      <div id="disputesList"></div>
+    </div>
+    <div class="view" id="view-staff">
+      <h2>Staff Accounts</h2>
+      <div style="max-width:320px; margin-bottom:20px;">
+        <input id="newStaffName" placeholder="Username">
+        <input id="newStaffPassword" type="password" placeholder="Password">
+        <select id="newStaffRole" style="width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px;">
+          <option value="kitchen">Kitchen</option>
+          <option value="cashier">Cashier</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="createStaff()">Create account</button>
+      </div>
+      <div id="staffMessage" style="font-size:0.85rem;"></div>
+    </div>
+    <div class="view" id="view-audit">
+      <h2>Audit Log</h2>
+      <table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = '';
+  let token = null;
+
+  async function api(path, options = {}){
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  }
+
+  async function login(){
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    try {
+      const data = await api('/api/auth/staff-login', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('staffName').value,
+          password: document.getElementById('staffPassword').value,
+        }),
+      });
+      token = data.token;
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      loadMenu();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  document.querySelectorAll('.sb-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + item.dataset.view).classList.add('active');
+      if (item.dataset.view === 'transactions') loadTransactions();
+      if (item.dataset.view === 'disputes') loadDisputes();
+      if (item.dataset.view === 'audit') loadAudit();
+    });
+  });
+
+  async function loadMenu(){
+    const items = await api('/api/menu');
+    document.getElementById('menuBody').innerHTML = items.map(item => `
+      <tr>
+        <td onclick="editPhoto(${item.item_id})" style="cursor:pointer;">${item.image_url ? `<img src="${item.image_url}" style="width:36px; height:36px; border-radius:8px; object-fit:cover;">` : '<span style="color:var(--gold-600); font-size:0.78rem;">+ Add</span>'}</td>
+        <td><b>${item.name}</b></td>
+        <td>UGX ${Number(item.price).toLocaleString()}</td>
+        <td>${item.stock_qty}</td>
+        <td><span class="toggle ${item.available ? 'on' : ''}" onclick="toggleAvailable(${item.item_id}, ${!item.available})"></span></td>
+      </tr>
+    `).join('');
+  }
+  async function toggleAvailable(itemId, newValue){
+    await api(`/api/menu/${itemId}`, { method: 'PATCH', body: JSON.stringify({ available: newValue }) });
+    loadMenu();
+  }
+  async function editPhoto(itemId){
+    const url = prompt('Paste an image URL for this item:');
+    if (url === null) return; // cancelled
+    await api(`/api/menu/${itemId}`, { method: 'PATCH', body: JSON.stringify({ image_url: url }) });
+    loadMenu();
+  }
+
+  async function loadTransactions(){
+    const txns = await api('/api/transactions');
+    document.getElementById('txnBody').innerHTML = txns.map(t => `
+      <tr>
+        <td>${new Date(t.created_at).toLocaleString()}</td>
+        <td>${t.student_name} (${t.reg_number})</td>
+        <td>${t.type}</td>
+        <td>${t.method}</td>
+        <td>UGX ${Number(t.amount).toLocaleString()}</td>
+        <td>${t.status}</td>
+      </tr>
+    `).join('');
+  }
+
+  const reasonLabels = { wrong_item:'Wrong item received', missing_item:'Item was missing', never_received:'Never received order', quality_issue:'Food quality issue', other:'Other issue' };
+  async function loadDisputes(){
+    const disputes = await api('/api/disputes?status=open');
+    document.getElementById('disputesList').innerHTML = disputes.length === 0
+      ? '<div style="opacity:0.6;">No open disputes.</div>'
+      : disputes.map(d => `
+        <div class="dispute-card">
+          <b>${reasonLabels[d.reason]}</b> — ${d.student_name} (${d.reg_number}) — UGX ${Number(d.order_total).toLocaleString()}
+          ${d.description ? `<div style="margin-top:8px; font-size:0.85rem;">"${d.description}"</div>` : ''}
+          <div style="margin-top:10px;">
+            <button class="da-refund" onclick="resolveDispute(${d.dispute_id}, true)">Refund & resolve</button>
+            <button class="da-resolve" onclick="resolveDispute(${d.dispute_id}, false)">Resolve</button>
+            <button class="da-reject" onclick="rejectDispute(${d.dispute_id})">Reject</button>
+          </div>
+        </div>
+      `).join('');
+  }
+  async function resolveDispute(id, refund){
+    await api(`/api/disputes/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'resolved', refund }) });
+    loadDisputes();
+  }
+  async function rejectDispute(id){
+    await api(`/api/disputes/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'rejected' }) });
+    loadDisputes();
+  }
+
+  async function createStaff(){
+    const msgEl = document.getElementById('staffMessage');
+    try {
+      const staff = await api('/api/auth/create-staff', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('newStaffName').value,
+          password: document.getElementById('newStaffPassword').value,
+          role: document.getElementById('newStaffRole').value,
+        }),
+      });
+      msgEl.style.color = '#2C6350';
+      msgEl.textContent = `Created ${staff.role} account "${staff.name}".`;
+      document.getElementById('newStaffName').value = '';
+      document.getElementById('newStaffPassword').value = '';
+    } catch (err) {
+      msgEl.style.color = '#C24E3D';
+      msgEl.textContent = err.message;
+    }
+  }
+
+  function exportCsv(){
+    // Direct navigation (not fetch) so the browser handles the file download,
+    // with the token passed as a query param since download links can't set headers.
+    window.open(`/api/export/sales.csv?token=${token}`, '_blank');
+  }
+
+  async function loadAudit(){
+    const entries = await api('/api/audit');
+    document.getElementById('auditBody').innerHTML = entries.map(a => `
+      <tr>
+        <td>${new Date(a.created_at).toLocaleString()}</td>
+        <td>${a.staff_name}</td>
+        <td>${a.action}</td>
+        <td>${a.target_type} #${a.target_id}</td>
+        <td>${a.details || ''}</td>
+      </tr>
+    `).join('');
+  }
+</script>
+</body>
+</html>
