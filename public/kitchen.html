@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen — Busitema Canteen</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#14251F; --panel:#1B2F28; --line:#2E4A3E; --gold:#E3A857; --paper:#F5F1E7; --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--paper); font-family:var(--font-body); }
+  .login-wrap { max-width:340px; margin:80px auto; padding:0 20px; }
+  h2 { font-family:var(--font-display); }
+  input { width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px; background:var(--panel); color:var(--paper); }
+  button { width:100%; padding:12px; border:none; border-radius:9px; background:var(--gold); color:#2A1E08; font-weight:700; cursor:pointer; transition: transform .12s ease, box-shadow .15s ease, opacity .15s; }
+  button:hover { box-shadow:0 4px 12px rgba(227,168,87,0.3); transform:translateY(-1px); }
+  button:active { transform:scale(0.96); }
+  .error { color:#D9614F; font-size:0.85rem; margin-bottom:10px; }
+  .board { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:1px; background:var(--line); min-height:100vh; }
+  .column { background:var(--bg); padding:14px; }
+  .col-title { font-family:var(--font-display); font-weight:700; margin-bottom:10px; }
+  .order-card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; transition: transform .15s ease, box-shadow .15s ease; animation: cardIn .3s ease both; }
+  .order-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.25); }
+  @keyframes cardIn { from { opacity:0; transform:translateY(-8px);} to { opacity:1; transform:translateY(0);} }
+  .oc-ticket { font-family:var(--font-display); font-weight:700; font-size:1.2rem; }
+  .oc-items { font-size:0.85rem; margin-top:8px; }
+  .oc-btn { margin-top:10px; padding:8px 12px; border:none; border-radius:8px; background:var(--gold); color:#2A1E08; font-weight:700; cursor:pointer; font-size:0.8rem; transition: transform .12s ease; }
+  .oc-btn:active { transform:scale(0.94); }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginView">
+  <h2>Kitchen login</h2>
+  <div class="error hidden" id="loginError"></div>
+  <input id="staffName" placeholder="Staff username">
+  <input id="staffPassword" type="password" placeholder="Password">
+  <button onclick="login()">Log in</button>
+</div>
+
+<div class="board hidden" id="board">
+  <div class="column"><div class="col-title">New Orders</div><div id="col-placed"></div></div>
+  <div class="column"><div class="col-title">Preparing</div><div id="col-preparing"></div></div>
+  <div class="column"><div class="col-title">Ready</div><div id="col-ready"></div></div>
+  <div class="column"><div class="col-title">💵 Awaiting Cash</div><div id="col-pending-cash"></div></div>
+</div>
+
+<script>
+  const API_BASE = '';
+  let token = null;
+  let orders = [];
+  let socket = null;
+
+  async function api(path, options = {}){
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  }
+
+  async function login(){
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    try {
+      const data = await api('/api/auth/staff-login', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('staffName').value,
+          password: document.getElementById('staffPassword').value,
+        }),
+      });
+      token = data.token;
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('board').classList.remove('hidden');
+      connectSocket();
+      await loadOrders();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  async function loadOrders(){
+    orders = await api('/api/orders/kitchen');
+    render();
+    loadPendingCash();
+  }
+
+  async function loadPendingCash(){
+    const pending = await api('/api/orders/pending-cash');
+    document.getElementById('col-pending-cash').innerHTML = pending.length === 0
+      ? '<div style="opacity:0.5; font-size:0.85rem;">Nothing awaiting cash.</div>'
+      : pending.map(o => `
+        <div class="order-card">
+          <div class="oc-ticket">B-${o.queue_number}</div>
+          <div class="oc-items">${o.guest_name} · UGX ${Number(o.total).toLocaleString()}</div>
+          <button class="oc-btn" onclick="confirmCash(${o.order_id})">Confirm cash received</button>
+        </div>
+      `).join('');
+  }
+
+  async function confirmCash(orderId){
+    await api(`/api/orders/${orderId}/confirm-cash`, { method: 'POST' });
+    loadPendingCash();
+    loadOrders();
+  }
+
+  function render(){
+    ['placed', 'preparing', 'ready'].forEach(status => {
+      const list = orders.filter(o => o.order_status === status);
+      const container = document.getElementById('col-' + status);
+      const btnLabel = status === 'placed' ? 'Start preparing' : status === 'preparing' ? 'Mark ready' : 'Mark served';
+      const nextStatus = status === 'placed' ? 'preparing' : status === 'preparing' ? 'ready' : 'served';
+      container.innerHTML = list.map(o => `
+        <div class="order-card">
+          <div class="oc-ticket">B-${o.queue_number}</div>
+          <div class="oc-items">${o.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}</div>
+          <button class="oc-btn" onclick="advance(${o.order_id}, '${nextStatus}')">${btnLabel}</button>
+        </div>
+      `).join('') || '<div style="opacity:0.5; font-size:0.85rem;">No orders here right now.</div>';
+    });
+  }
+
+  async function advance(orderId, status){
+    await api(`/api/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    if (status === 'served') {
+      orders = orders.filter(o => o.order_id !== orderId);
+    } else {
+      const o = orders.find(x => x.order_id === orderId);
+      if (o) o.order_status = status;
+    }
+    render();
+  }
+
+  function connectSocket(){
+    socket = io({ auth: { token } });
+    socket.on('order:new', (order) => {
+      orders.push({ order_id: order.order_id, order_status: 'placed', queue_number: order.queue_number, items: order.items, pickup_time: order.pickup_time });
+      render();
+    });
+    socket.on('order:updated', (payload) => {
+      const o = orders.find(x => x.order_id === payload.order_id);
+      if (o) { o.order_status = payload.status; render(); }
+    });
+    setInterval(loadPendingCash, 8000);
+  }
+</script>
+</body>
+</html>
