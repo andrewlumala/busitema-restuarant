@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Busitema Restaurant</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-900:#16332A; --green-700:#1F4A3D; --green-600:#2C6350;
+    --gold-500:#E3A857; --teal-500:#2E9B8F;
+    --ink:#201C16; --paper:#FFFDF9; --paper-dim:#F2EFE7; --line:#E3DFD3; --muted:#8A8474;
+    --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: linear-gradient(160deg, var(--green-900), var(--green-700) 60%, var(--green-600));
+    font-family: var(--font-body); padding: 24px; text-align:center;
+  }
+  .brand { font-family: var(--font-display); font-weight:700; font-size:1.8rem; color:var(--paper); margin-bottom:4px; animation: fadeIn .5s var(--ease) both; }
+  .brand span { color: var(--gold-500); }
+  .tagline { color: rgba(255,255,255,0.65); font-size:0.9rem; margin-bottom: 40px; animation: fadeIn .5s .1s var(--ease) both; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
+
+  .roles { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
+  .role-card {
+    background: var(--paper); border-radius:16px; padding:20px 22px; text-decoration:none; color:var(--ink);
+    display:flex; align-items:center; gap:16px; text-align:left;
+    transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+    animation: cardIn .5s var(--ease) both;
+  }
+  .role-card:nth-child(1) { animation-delay: .15s; }
+  .role-card:nth-child(2) { animation-delay: .25s; }
+  .role-card:nth-child(3) { animation-delay: .35s; }
+  @keyframes cardIn { from { opacity:0; transform:translateY(14px);} to { opacity:1; transform:translateY(0);} }
+  .role-card:hover { transform:translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.25); }
+  .role-card:active { transform:scale(0.98); }
+  .role-icon { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+  .role-card.student .role-icon { background: rgba(31,74,61,0.1); }
+  .role-card.kitchen .role-icon { background: rgba(227,168,87,0.15); }
+  .role-card.admin .role-icon { background: rgba(46,155,143,0.12); }
+  .role-title { font-family: var(--font-display); font-weight:700; font-size:1rem; }
+  .role-sub { font-size:0.8rem; color:var(--muted); margin-top:2px; }
+
+  footer { margin-top: 36px; color: rgba(255,255,255,0.4); font-size: 0.75rem; animation: fadeIn .5s .45s var(--ease) both; }
+</style>
+</head>
+<body>
+  <div class="brand">Busitema <span>Restaurant</span></div>
+  <div class="tagline">Skip the line. Order ahead.</div>
+
+  <div class="roles">
+    <a class="role-card student" href="/student.html">
+      <div class="role-icon">🎓</div>
+      <div>
+        <div class="role-title">I'm a Student</div>
+        <div class="role-sub">Order food, or check out as a guest</div>
+      </div>
+    </a>
+    <a class="role-card kitchen" href="/kitchen.html">
+      <div class="role-icon">👨‍🍳</div>
+      <div>
+        <div class="role-title">I'm Kitchen Staff</div>
+        <div class="role-sub">View and prepare live orders</div>
+      </div>
+    </a>
+    <a class="role-card admin" href="/admin.html">
+      <div class="role-icon">📊</div>
+      <div>
+        <div class="role-title">I'm an Admin</div>
+        <div class="role-sub">Menu, transactions, disputes, staff</div>
+      </div>
+    </a>
+  </div>
+
+  <footer>Busitema University</footer>
+</body>
+</html>
