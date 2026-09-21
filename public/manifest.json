@@ -1,0 +1,18 @@
+{
+  "name": "Busitema Restaurant",
+  "short_name": "Busitema",
+  "description": "Order ahead, pay digitally, skip the line — Busitema University's digital restaurant.",
+  "start_url": "/student.html",
+  "display": "standalone",
+  "background_color": "#FFFDF9",
+  "theme_color": "#1F4A3D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

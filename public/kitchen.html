@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kitchen — Busitema Canteen</title>
+<title>Kitchen — Busitema Restaurant</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==">
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -64,6 +65,11 @@
     return data;
   }
 
+  function escapeHtml(str){
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   async function login(){
     const errEl = document.getElementById('loginError');
     errEl.classList.add('hidden');
@@ -99,7 +105,7 @@
       : pending.map(o => `
         <div class="order-card">
           <div class="oc-ticket">B-${o.queue_number}</div>
-          <div class="oc-items">${o.guest_name} · UGX ${Number(o.total).toLocaleString()}</div>
+          <div class="oc-items">${escapeHtml(o.guest_name)} · UGX ${Number(o.total).toLocaleString()}</div>
           <button class="oc-btn" onclick="confirmCash(${o.order_id})">Confirm cash received</button>
         </div>
       `).join('');
@@ -120,7 +126,7 @@
       container.innerHTML = list.map(o => `
         <div class="order-card">
           <div class="oc-ticket">B-${o.queue_number}</div>
-          <div class="oc-items">${o.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}</div>
+              ${o.items.map(i => `<div><span><span class="qty">${i.quantity}×</span>${escapeHtml(i.name)}</span></div>`).join('')}
           <button class="oc-btn" onclick="advance(${o.order_id}, '${nextStatus}')">${btnLabel}</button>
         </div>
       `).join('') || '<div style="opacity:0.5; font-size:0.85rem;">No orders here right now.</div>';

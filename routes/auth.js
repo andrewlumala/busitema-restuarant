@@ -133,7 +133,7 @@ router.post('/forgot-password', async (req, res) => {
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   await pool.query(`UPDATE students SET reset_token_hash = $1, reset_token_expires = $2 WHERE student_id = $3`, [tokenHash, expires, student.student_id]);
-  await sendSms({ phone: student.phone, message: `Your Busitema Canteen reset code is ${rawToken}. Expires in 15 minutes.` });
+  await sendSms({ phone: student.phone, message: `Your Busitema Restaurant reset code is ${rawToken}. Expires in 15 minutes.` });
 
   res.json({ message: 'If that account exists, a reset code has been sent.' });
 });

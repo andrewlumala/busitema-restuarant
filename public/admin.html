@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Busitema Canteen</title>
+<title>Admin — Busitema Restaurant</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -126,6 +127,11 @@
     return data;
   }
 
+  function escapeHtml(str){
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   async function login(){
     const errEl = document.getElementById('loginError');
     errEl.classList.add('hidden');
@@ -164,8 +170,8 @@
     const items = await api('/api/menu');
     document.getElementById('menuBody').innerHTML = items.map(item => `
       <tr>
-        <td onclick="editPhoto(${item.item_id})" style="cursor:pointer;">${item.image_url ? `<img src="${item.image_url}" style="width:36px; height:36px; border-radius:8px; object-fit:cover;">` : '<span style="color:var(--gold-600); font-size:0.78rem;">+ Add</span>'}</td>
-        <td><b>${item.name}</b></td>
+        <td onclick="editPhoto(${item.item_id})" style="cursor:pointer;">${item.image_url ? `<img src="${escapeHtml(item.image_url)}" style="width:36px; height:36px; border-radius:8px; object-fit:cover;">` : '<span style="color:var(--gold-600); font-size:0.78rem;">+ Add</span>'}</td>
+        <td><b>${escapeHtml(item.name)}</b></td>
         <td>UGX ${Number(item.price).toLocaleString()}</td>
         <td>${item.stock_qty}</td>
         <td><span class="toggle ${item.available ? 'on' : ''}" onclick="toggleAvailable(${item.item_id}, ${!item.available})"></span></td>
@@ -188,7 +194,7 @@
     document.getElementById('txnBody').innerHTML = txns.map(t => `
       <tr>
         <td>${new Date(t.created_at).toLocaleString()}</td>
-        <td>${t.student_name} (${t.reg_number})</td>
+        <td>${escapeHtml(t.student_name)} (${escapeHtml(t.reg_number)})</td>
         <td>${t.type}</td>
         <td>${t.method}</td>
         <td>UGX ${Number(t.amount).toLocaleString()}</td>
@@ -204,8 +210,8 @@
       ? '<div style="opacity:0.6;">No open disputes.</div>'
       : disputes.map(d => `
         <div class="dispute-card">
-          <b>${reasonLabels[d.reason]}</b> — ${d.student_name} (${d.reg_number}) — UGX ${Number(d.order_total).toLocaleString()}
-          ${d.description ? `<div style="margin-top:8px; font-size:0.85rem;">"${d.description}"</div>` : ''}
+          <b>${reasonLabels[d.reason]}</b> — ${escapeHtml(d.student_name)} (${escapeHtml(d.reg_number)}) — UGX ${Number(d.order_total).toLocaleString()}
+          ${d.description ? `<div style="margin-top:8px; font-size:0.85rem;">"${escapeHtml(d.description)}"</div>` : ''}
           <div style="margin-top:10px;">
             <button class="da-refund" onclick="resolveDispute(${d.dispute_id}, true)">Refund & resolve</button>
             <button class="da-resolve" onclick="resolveDispute(${d.dispute_id}, false)">Resolve</button>
@@ -255,10 +261,10 @@
     document.getElementById('auditBody').innerHTML = entries.map(a => `
       <tr>
         <td>${new Date(a.created_at).toLocaleString()}</td>
-        <td>${a.staff_name}</td>
+        <td>${escapeHtml(a.staff_name)}</td>
         <td>${a.action}</td>
         <td>${a.target_type} #${a.target_id}</td>
-        <td>${a.details || ''}</td>
+        <td>${escapeHtml(a.details) || ''}</td>
       </tr>
     `).join('');
   }
@@ -274,7 +280,7 @@
       ? '<div style="color:var(--muted); font-size:0.85rem;">Nothing waiting on confirmation.</div>'
       : pending.map(t => `
         <div class="dispute-card">
-          <b>${t.student_name}</b> (${t.reg_number}) — UGX ${Number(t.amount).toLocaleString()} via ${methodLabel[t.method]}
+          <b>${escapeHtml(t.student_name)}</b> (${escapeHtml(t.reg_number)}) — UGX ${Number(t.amount).toLocaleString()} via ${methodLabel[t.method]}
           <div style="font-size:0.78rem; color:var(--muted); margin-top:4px;">Requested ${new Date(t.created_at).toLocaleString()}</div>
           <button class="da-resolve" style="margin-top:10px;" onclick="confirmTopup(${t.transaction_id})">✓ Confirm payment received</button>
         </div>

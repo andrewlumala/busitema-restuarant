@@ -1,4 +1,4 @@
--- Busitema Canteen — Database Schema (PostgreSQL)
+-- Busitema Restaurant — Database Schema (PostgreSQL)
 
 CREATE TABLE students (
   student_id      SERIAL PRIMARY KEY,

@@ -69,7 +69,7 @@ async function requestMtnPayment({ phone, amount, reference }) {
       currency: 'EUR', // MTN sandbox only accepts EUR — switch to UGX once you're approved for production
       externalId: String(reference), // our own order/transaction id, for our own records
       payer: { partyIdType: 'MSISDN', partyId: phone },
-      payerMessage: 'Busitema Canteen order',
+      payerMessage: 'Busitema Restaurant order',
       payeeNote: `Merchant ${MTN_MERCHANT_CODE}`,
     }),
   });

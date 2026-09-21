@@ -1,6 +1,6 @@
-# Busitema Canteen — Backend API
+# Busitema Restaurant — Backend API
 
-Backend for the Busitema University Canteen digital ordering system: student
+Backend for the Busitema University Restaurant digital ordering system: student
 ordering & wallet, kitchen live order feed, and admin management. Pairs with
 the three frontend prototypes (student app, kitchen display, admin dashboard).
 
@@ -194,6 +194,46 @@ Because #1 happens entirely outside your system, **there's no way to know it suc
 someone checking** — that's what the "Wallet Top-ups" tab in `admin.html` is for: staff check
 the merchant's own MoMo/Airtel account statement (or the SMS confirmation, if the student shows
 it) and manually confirm each pending request, which is when the wallet actually gets credited.
+
+## Hardening round — security, offline support, and ops
+
+A second pass added the things that separate "works in testing" from "safe to actually run":
+
+| Area | What was added |
+|---|---|
+| **XSS fix** | Every place a student/guest-controlled string (names, dispute descriptions) got rendered in another user's browser (kitchen, admin) now goes through an `escapeHtml()` helper first. This was a real vulnerability, not just a style issue — a malicious name field could have run arbitrary JavaScript in a staff member's browser. |
+| **Rate limiting** | Expanded beyond login: 200 req/min/IP globally, 15 orders/min/IP specifically (order creation touches stock + payment, worth extra protection). |
+| **Logging** | `morgan` request logging + a global error handler + `unhandledRejection`/`uncaughtException` listeners, so problems get logged instead of failing silently. |
+| **PWA** | `manifest.json` + a service worker (`sw.js`) — `student.html` is now genuinely installable ("Add to Home Screen") and the app shell loads even with no connection (ordering itself still needs a live connection, obviously). |
+| **Menu search** | A search box filters the student menu by name — matters once you're past ~10 items. |
+| **Reorder** | Past orders (new "My past orders" view, `GET /api/orders/mine`) have a one-tap "Reorder" that repopulates the cart. |
+| **Receipt printing** | "Receipt" button on any past order opens a formatted, printable receipt in a new tab. |
+| **In-app help** | A "Need help?" link with basic guidance — not a full support ticket system, but better than nothing. |
+| **Privacy notice** | `privacy.html`, linked from registration — plain-language, not a substitute for real legal review before a real pilot with real students. |
+| **DB backups** | `scripts/backup-db.sh` — `pg_dump` against either local Docker or `DATABASE_URL`. Neon's paid tiers also offer automatic point-in-time recovery, worth it once this is real. |
+| **Load testing** | `scripts/load-test.js` — a basic concurrency sanity check (`node scripts/load-test.js 100 https://your-url`). Not a replacement for real tools (k6, Artillery) but zero setup. |
+
+### What's still genuinely missing (being honest)
+
+- **No automated tests.** The single biggest gap for something handling real money.
+- **No real monitoring/alerting.** Logging tells you what happened after the fact; nothing pages
+  you when the server goes down during lunch rush. A free option: point
+  [UptimeRobot](https://uptimerobot.com) at your `/health` endpoint — costs nothing, takes 5
+  minutes, and texts you if it goes down.
+- **Never load-tested against real traffic.** `scripts/load-test.js` is a start, not a guarantee.
+
+### Rough cost planning for a real pilot
+
+| Item | Free tier | Beyond free tier |
+|---|---|---|
+| Neon (database) | Generous — fine for a pilot | ~$19/mo at Neon's next tier if you outgrow it |
+| Railway (API hosting) | $5 one-time trial credit | Usage-based after — budget ~$5-10/mo for light traffic |
+| SMS (Africa's Talking) | None — pay per message | ~UGX 30-50/SMS in Uganda; budget based on daily order volume × 1 SMS each (ready notification) |
+| Domain (optional) | — | ~$10-15/year if you want a custom domain instead of the free Railway subdomain |
+
+For a small pilot (one canteen, a few hundred students), this realistically costs **under $20/month**,
+mostly SMS — worth putting an actual number in front of restaurant management rather than leaving
+it vague.
 
 ## Automatic stock handling
 

@@ -204,7 +204,7 @@ module.exports = function (io) {
         phone = studentResult.rows[0]?.phone;
       }
       if (phone) {
-        await sendSms({ phone, message: `Busitema Canteen: your order B-${queueNum} is ready for pickup!` });
+        await sendSms({ phone, message: `Busitema Restaurant: your order B-${queueNum} is ready for pickup!` });
       }
     }
 
@@ -244,7 +244,7 @@ module.exports = function (io) {
     }
 
     const itemsResult = await pool.query(
-      `SELECT m.name, oi.quantity, oi.subtotal
+      `SELECT m.item_id, m.name, oi.quantity, oi.subtotal
        FROM order_items oi JOIN menu_items m ON m.item_id = oi.item_id
        WHERE oi.order_id = $1`,
       [req.params.id]
