@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Busitema Restaurant</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --green-900:#16332A; --green-700:#1F4A3D; --gold-500:#E3A857; --ink:#201C16; --paper:#FFFDF9; --paper-dim:#F2EFE7; --line:#E3DFD3; --red:#C24E3D; --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; }
+  :root[data-theme="dark"] { --ink:#F2EFE7; --paper:#17150F; --paper-dim:#1E1B14; --line:#34301F; }
+  body, .kpi-card, .dispute-card, table { transition: background .25s ease, color .25s ease, border-color .25s ease; }
+  .theme-toggle { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; width:100%; padding:9px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-size:0.82rem; font-weight:600; color:white; transition: background .15s ease; }
+  .theme-toggle:hover { background:rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); }
+  .login-wrap { max-width:340px; margin:80px auto; padding:0 20px; }
+  h2 { font-family:var(--font-display); }
+  input { width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px; }
+  button { padding:9px 16px; border:none; border-radius:9px; background:var(--green-700); color:white; font-weight:700; cursor:pointer; font-family:var(--font-body); transition: transform .12s ease, background .15s ease, box-shadow .15s ease; }
+  button:hover { background:var(--gold-600); box-shadow:0 4px 12px rgba(201,143,62,0.3); }
+  button:active { transform:scale(0.96); }
+  .error { color:var(--red); font-size:0.85rem; margin-bottom:10px; }
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:200px; background:var(--green-900); color:#EDEAE0; padding:20px 14px; }
+  .sb-item { padding:10px 12px; border-radius:9px; cursor:pointer; font-weight:600; font-size:0.87rem; transition: background .15s ease, transform .12s ease; display:flex; align-items:center; }
+  .sb-item:hover { background:rgba(255,255,255,0.06); transform:translateX(2px); }
+  .sb-item.active { background:rgba(227,168,87,0.15); color:var(--gold-500); }
+  .main { flex:1; padding:26px 32px; }
+  .view { display:none; animation: viewIn .3s ease both; }
+  .view.active { display:block; }
+  @keyframes viewIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
+  table { width:100%; border-collapse:collapse; background:var(--paper-dim); border-radius:12px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 14px; font-size:0.85rem; border-bottom:1px solid var(--line); }
+  tr { transition: background .12s ease; }
+  tbody tr:hover { background:rgba(31,74,61,0.05); }
+  .toggle { width:38px; height:21px; border-radius:999px; background:var(--line); position:relative; cursor:pointer; display:inline-block; transition: background .2s ease; }
+  .toggle.on { background:#2C6350; }
+  .toggle::after { content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:white; transition: left .2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .toggle.on::after { left:19px; }
+  .dispute-card { background:var(--paper-dim); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:12px; transition: transform .15s ease, box-shadow .15s ease; animation: viewIn .3s ease both; }
+  .dispute-card:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(31,74,61,0.1); }
+  .hidden { display:none !important; }
+  .da-refund { background:var(--red); margin-right:6px; }
+  .da-refund:hover { background:#a5382a; }
+  .da-resolve { background:#2C6350; margin-right:6px; }
+  .da-resolve:hover { background:#1F4A3D; }
+  .da-reject { background:var(--paper); border:1px solid var(--line); color:var(--ink); }
+
+  /* Overview page */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card { background: var(--paper-dim); border: 1px solid var(--line); border-radius: 13px; padding: 16px 18px; transition: transform .15s ease, box-shadow .15s ease; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(31,74,61,0.1); }
+  .kpi-label { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+  .kpi-value { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; margin-top: 6px; color: var(--green-700); }
+
+  .panel-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .panel { background: var(--paper-dim); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel-title { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; margin-bottom: 14px; }
+
+  .chart-row { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 10px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar { width: 60%; background: var(--green-700); border-radius: 5px 5px 0 0; transition: height .5s cubic-bezier(0.22,1,0.36,1); min-height: 2px; }
+  .bar-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 7px; }
+
+  .top-item-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 0.86rem; }
+  .top-item-row:last-child { border-bottom: none; }
+  .ti-rank { width: 20px; color: var(--gold-600); font-family: var(--font-display); font-weight: 700; }
+  .ti-name { flex: 1; font-weight: 600; }
+  .ti-count { color: var(--muted); font-size: 0.78rem; }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .panel-row { grid-template-columns: 1fr; }
+  }
+
+  .toast-stack { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:calc(100% - 40px); max-width:420px; z-index:100; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+  .toast { padding:13px 16px; border-radius:11px; font-size:0.86rem; font-weight:600; color:white; box-shadow:0 8px 24px rgba(0,0,0,0.18); animation: toastIn .35s ease both; }
+  .toast.success { background:#2C6350; }
+  .toast.error { background:var(--red); }
+  .toast.info { background:var(--ink); }
+  .toast.hide { animation: toastOut .3s ease forwards; }
+  @keyframes toastIn { from { opacity:0; transform:translateY(16px) scale(0.95);} to { opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes toastOut { to { opacity:0; transform:translateY(8px) scale(0.95);} }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, .sb-item:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--gold-500); outline-offset: 2px;
+  }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(22,51,42,0.45); display:flex; align-items:center; justify-content:center; z-index:200; }
+  .modal-sheet { background:var(--paper); border-radius:14px; padding:22px; width:360px; max-width:90vw; }
+  .modal-sheet h3 { font-family:var(--font-display); margin:0 0 8px; }
+  .modal-sheet p { font-size:0.86rem; color:var(--muted); margin:0 0 14px; }
+  .modal-sheet textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-family:var(--font-body); font-size:0.85rem; resize:vertical; min-height:60px; background:var(--paper); color:var(--ink); }
+  .modal-actions { display:flex; gap:10px; margin-top:14px; }
+  .modal-actions button { flex:1; }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginView">
+  <div style="text-align:center; margin-bottom:16px;"><a href="/" style="color:var(--green-700); font-size:0.8rem; text-decoration:none;">← Choose a different role</a></div>
+<h2>Admin login</h2>
+  <div class="error hidden" id="loginError"></div>
+  <input id="staffName" placeholder="Staff username">
+  <input id="staffPassword" type="password" placeholder="Password">
+  <button style="width:100%;" onclick="login()">Log in</button>
+</div>
+
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode" style="margin:0 0 14px;">🌙 Theme</button>
+    <div class="sb-item active" data-view="overview">📊 Overview</div>
+    <div class="sb-item" data-view="menu">🍽️ Menu</div>
+    <div class="sb-item" data-view="transactions">💳 Transactions</div>
+    <div class="sb-item" data-view="disputes">⚠️ Disputes <span id="disputeBadge" style="background:var(--red); color:white; font-size:0.65rem; padding:1px 6px; border-radius:999px; margin-left:auto; display:none;"></span></div>
+    <div class="sb-item" data-view="topups">💰 Wallet Top-ups <span id="topupBadge" style="background:var(--red); color:white; font-size:0.65rem; padding:1px 6px; border-radius:999px; margin-left:auto;"></span></div>
+    <div class="sb-item" data-view="staff">👤 Staff</div>
+    <div class="sb-item" data-view="audit">📜 Audit Log</div>
+  </div>
+  <div class="main">
+    <div class="view" id="view-overview">
+      <h2>Overview</h2>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Revenue Today</div><div class="kpi-value" id="kpiRevenue">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Orders Today</div><div class="kpi-value" id="kpiOrders">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg. Prep Time</div><div class="kpi-value" id="kpiPrepTime">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Active Wallets</div><div class="kpi-value" id="kpiWallets">—</div></div>
+      </div>
+      <div class="panel-row">
+        <div class="panel">
+          <div class="panel-title">Revenue — last 7 days</div>
+          <div class="chart-row" id="revenueChart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Top selling items today</div>
+          <div id="topItemsList"></div>
+        </div>
+      </div>
+      <div class="panel-row">
+        <div class="panel">
+          <div class="panel-title">Payment methods today</div>
+          <div class="chart-row" id="methodChart" style="height:110px;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Top rated items</div>
+          <div id="topRatedList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-menu">
+      <h2>Menu Management</h2>
+      <table><thead><tr><th>Photo</th><th>Item</th><th>Price</th><th>Stock</th><th>Available</th></tr></thead><tbody id="menuBody"></tbody></table>
+      <input type="file" id="photoFileInput" accept="image/*" class="hidden" onchange="handlePhotoFile()">
+    </div>
+    <div class="view" id="view-transactions">
+      <h2>Transactions</h2>
+      <a href="#" id="exportLink" style="font-size:0.85rem; font-weight:700; color:var(--green-700);" onclick="exportCsv(); return false;">⬇ Export CSV</a>
+      <table style="margin-top:12px;"><thead><tr><th>Time</th><th>Student</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody id="txnBody"></tbody></table>
+    </div>
+    <div class="view" id="view-disputes">
+      <h2>Disputes</h2>
+      <div id="disputesList"></div>
+    </div>
+    <div class="view" id="view-topups">
+      <h2>Wallet Top-ups</h2>
+
+      <div style="max-width:340px; margin-bottom:24px; background:var(--paper-dim); border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 10px; font-family:var(--font-display); font-size:0.95rem;">Cash received in person</h3>
+        <input id="cashRegNumber" placeholder="Student registration number">
+        <input id="cashAmount" type="number" placeholder="Amount (UGX)">
+        <button onclick="submitCashTopup()">Credit wallet now</button>
+        <div id="cashTopupMessage" style="font-size:0.85rem; margin-top:8px;"></div>
+      </div>
+
+      <h3 style="font-family:var(--font-display); font-size:0.95rem; margin-bottom:10px;">Awaiting mobile money confirmation</h3>
+      <div id="pendingTopupsList"></div>
+    </div>
+    <div class="view" id="view-staff">
+      <h2>Staff Accounts</h2>
+      <div style="max-width:320px; margin-bottom:20px;">
+        <input id="newStaffName" placeholder="Username">
+        <input id="newStaffPassword" type="password" placeholder="Password">
+        <select id="newStaffRole" style="width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px;">
+          <option value="kitchen">Kitchen</option>
+          <option value="cashier">Cashier</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="createStaff()">Create account</button>
+      </div>
+      <div id="staffMessage" style="font-size:0.85rem;"></div>
+    </div>
+    <div class="view" id="view-audit">
+      <h2>Audit Log</h2>
+      <table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function initTheme(){
+    try {
+      const saved = localStorage.getItem('busitema-theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').textContent = '☀️ Theme';
+      }
+    } catch {}
+  })();
+  function toggleTheme(){
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeToggle').textContent = isDark ? '🌙 Theme' : '☀️ Theme';
+    try { localStorage.setItem('busitema-theme', isDark ? 'light' : 'dark'); } catch {}
+  }
+
+  const API_BASE = '';
+  let token = null;
+
+  async function api(path, options = {}){
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  }
+
+  function escapeHtml(str){
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function toast(message, type = 'info'){
+    const stack = document.getElementById('toastStack');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = (type === 'success' ? '✓ ' : type === 'error' ? '⚠ ' : '') + message;
+    stack.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('hide');
+      setTimeout(() => el.remove(), 300);
+    }, 3500);
+  }
+
+  async function login(){
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    try {
+      const data = await api('/api/auth/staff-login', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('staffName').value,
+          password: document.getElementById('staffPassword').value,
+        }),
+      });
+      token = data.token;
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      loadOverview();
+      connectSocket();
+      refreshDisputeBadge();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  let socket = null;
+  function connectSocket(){
+    socket = io({ auth: { token } });
+    // 'kitchen' room also carries admin/cashier — that's where dispute:new fires
+    socket.on('dispute:new', () => {
+      toast('A student just reported an issue', 'error');
+      refreshDisputeBadge();
+      // If already looking at the Disputes tab, refresh it live instead of making them switch away and back
+      if (document.getElementById('view-disputes').classList.contains('active')) loadDisputes();
+    });
+  }
+
+  async function refreshDisputeBadge(){
+    try {
+      const open = await api('/api/disputes?status=open');
+      const badge = document.getElementById('disputeBadge');
+      badge.textContent = open.length > 0 ? open.length : '';
+      badge.style.display = open.length > 0 ? 'inline-block' : 'none';
+    } catch {}
+  }
+
+  document.querySelectorAll('.sb-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + item.dataset.view).classList.add('active');
+      if (item.dataset.view === 'overview') loadOverview();
+      if (item.dataset.view === 'menu') loadMenu();
+      if (item.dataset.view === 'transactions') loadTransactions();
+      if (item.dataset.view === 'disputes') loadDisputes();
+      if (item.dataset.view === 'audit') loadAudit();
+      if (item.dataset.view === 'topups') loadPendingTopups();
+    });
+  });
+
+  async function loadOverview(){
+    try {
+      const [data, ratings] = await Promise.all([
+        api('/api/overview'),
+        api('/api/ratings/summary').catch(() => []), // public endpoint — don't let a hiccup break the rest of the page
+      ]);
+
+      document.getElementById('topRatedList').innerHTML = ratings.length === 0
+        ? '<div style="color:var(--muted); font-size:0.85rem;">No ratings yet.</div>'
+        : ratings.slice(0, 5).map(r => `
+          <div class="top-item-row">
+            <div class="ti-name">${escapeHtml(r.name)}</div>
+            <div class="ti-count">★ ${r.avg_stars} <span style="color:var(--muted);">(${r.rating_count})</span></div>
+          </div>
+        `).join('');
+
+      document.getElementById('kpiRevenue').textContent = 'UGX ' + data.revenue_today.toLocaleString();
+      document.getElementById('kpiOrders').textContent = data.orders_today;
+      document.getElementById('kpiPrepTime').textContent = data.avg_prep_minutes ? `${data.avg_prep_minutes} min` : '—';
+      document.getElementById('kpiWallets').textContent = data.active_wallets;
+
+      const maxRev = Math.max(...data.revenue_trend.map(r => r.revenue), 1);
+      document.getElementById('revenueChart').innerHTML = data.revenue_trend.map(r => `
+        <div class="bar-col">
+          <div class="bar" style="height:${Math.max((r.revenue / maxRev * 100), 2).toFixed(0)}%;"></div>
+          <div class="bar-lbl">${new Date(r.day).toLocaleDateString([], {weekday:'short'})}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('topItemsList').innerHTML = data.top_selling.length === 0
+        ? '<div style="color:var(--muted); font-size:0.85rem;">No sales yet today.</div>'
+        : data.top_selling.map((t, i) => `
+          <div class="top-item-row">
+            <div class="ti-rank">${i + 1}</div>
+            <div class="ti-name">${escapeHtml(t.name)}</div>
+            <div class="ti-count">${t.count} sold</div>
+          </div>
+        `).join('');
+
+      const methodLabels = { wallet: 'Wallet', mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', cash: 'Cash' };
+      const maxMethod = Math.max(...data.method_split.map(m => m.count), 1);
+      document.getElementById('methodChart').innerHTML = data.method_split.length === 0
+        ? '<div style="color:var(--muted); font-size:0.85rem;">No payments yet today.</div>'
+        : data.method_split.map(m => `
+          <div class="bar-col">
+            <div class="bar" style="height:${Math.max((m.count / maxMethod * 100), 2).toFixed(0)}%; background:var(--gold-500);"></div>
+            <div class="bar-lbl">${methodLabels[m.method] || m.method} (${m.count})</div>
+          </div>
+        `).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadMenu(){
+    const items = await api('/api/menu');
+    document.getElementById('menuBody').innerHTML = items.map(item => `
+      <tr>
+        <td onclick="editPhoto(${item.item_id})" style="cursor:pointer;">${item.image_url ? `<img src="${escapeHtml(item.image_url)}" style="width:36px; height:36px; border-radius:8px; object-fit:cover;">` : '<span style="color:var(--gold-600); font-size:0.78rem;">+ Add</span>'}</td>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td>UGX ${Number(item.price).toLocaleString()}</td>
+        <td>${item.stock_qty}</td>
+        <td><span class="toggle ${item.available ? 'on' : ''}" onclick="toggleAvailable(${item.item_id}, ${!item.available})"></span></td>
+      </tr>
+    `).join('');
+  }
+  async function toggleAvailable(itemId, newValue){
+    await api(`/api/menu/${itemId}`, { method: 'PATCH', body: JSON.stringify({ available: newValue }) });
+    loadMenu();
+  }
+  let photoTargetItemId = null;
+  function editPhoto(itemId){
+    photoTargetItemId = itemId;
+    document.getElementById('photoFileInput').click();
+  }
+
+  // Resizes/compresses in the browser before upload — since image_url is stored directly
+  // in the database (no separate file storage service is set up), keeping photos small
+  // matters. Caps at 500px wide and re-encodes as JPEG at moderate quality.
+  function handlePhotoFile(){
+    const file = document.getElementById('photoFileInput').files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('Please choose an image file', 'error'); return; }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        const maxWidth = 500;
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+
+        try {
+          await api(`/api/menu/${photoTargetItemId}`, { method: 'PATCH', body: JSON.stringify({ image_url: dataUrl }) });
+          toast('Photo updated', 'success');
+          loadMenu();
+        } catch (err) {
+          toast(err.message, 'error');
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('photoFileInput').value = ''; // allow re-selecting the same file later
+  }
+
+  let refundTargetOrderId = null;
+  let lastLoadedTxns = [];
+  function openRefund(orderId){
+    const txn = lastLoadedTxns.find(t => t.order_id === orderId);
+    if (!txn) return;
+    refundTargetOrderId = orderId;
+    document.getElementById('refundText').textContent = `Refunding UGX ${Number(txn.amount).toLocaleString()} to ${txn.student_name}'s campus wallet.`;
+    document.getElementById('refundReason').value = '';
+    document.getElementById('refundOverlay').classList.remove('hidden');
+  }
+  function closeRefund(){
+    document.getElementById('refundOverlay').classList.add('hidden');
+  }
+  async function confirmRefund(){
+    try {
+      await api(`/api/orders/${refundTargetOrderId}/refund`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: document.getElementById('refundReason').value.trim() || null }),
+      });
+      closeRefund();
+      toast('Order refunded to wallet', 'success');
+      loadTransactions();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
+  async function loadTransactions(){
+    const txns = await api('/api/transactions');
+    lastLoadedTxns = txns;
+    document.getElementById('txnBody').innerHTML = txns.map(t => {
+      const refundable = t.type === 'order_payment' && t.status === 'success' && t.order_payment_status === 'paid';
+      return `
+      <tr>
+        <td>${new Date(t.created_at).toLocaleString()}</td>
+        <td>${escapeHtml(t.student_name)} (${escapeHtml(t.reg_number)})</td>
+        <td>${t.type}</td>
+        <td>${t.method}</td>
+        <td>UGX ${Number(t.amount).toLocaleString()}</td>
+        <td>${t.status}</td>
+        <td>${refundable ? `<span class="link" style="color:var(--red); font-weight:700; font-size:0.8rem; cursor:pointer;" onclick="openRefund(${t.order_id})">Refund</span>` : (t.order_payment_status === 'refunded' ? '<span style="color:var(--muted); font-size:0.78rem;">Refunded</span>' : '')}</td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  const reasonLabels = { wrong_item:'Wrong item received', missing_item:'Item was missing', never_received:'Never received order', quality_issue:'Food quality issue', other:'Other issue' };
+  async function loadDisputes(){
+    const disputes = await api('/api/disputes?status=open');
+    document.getElementById('disputesList').innerHTML = disputes.length === 0
+      ? '<div style="opacity:0.6;">No open disputes.</div>'
+      : disputes.map(d => `
+        <div class="dispute-card">
+          <b>${reasonLabels[d.reason]}</b> — ${escapeHtml(d.student_name)} (${escapeHtml(d.reg_number)}) — UGX ${Number(d.order_total).toLocaleString()}
+          ${d.description ? `<div style="margin-top:8px; font-size:0.85rem;">"${escapeHtml(d.description)}"</div>` : ''}
+          <div style="margin-top:10px;">
+            <button class="da-refund" onclick="resolveDispute(${d.dispute_id}, true)">Refund & resolve</button>
+            <button class="da-resolve" onclick="resolveDispute(${d.dispute_id}, false)">Resolve</button>
+            <button class="da-reject" onclick="rejectDispute(${d.dispute_id})">Reject</button>
+          </div>
+        </div>
+      `).join('');
+  }
+  async function resolveDispute(id, refund){
+    await api(`/api/disputes/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'resolved', refund }) });
+    loadDisputes();
+    refreshDisputeBadge();
+  }
+  async function rejectDispute(id){
+    await api(`/api/disputes/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'rejected' }) });
+    loadDisputes();
+    refreshDisputeBadge();
+  }
+
+  async function createStaff(){
+    const msgEl = document.getElementById('staffMessage');
+    try {
+      const staff = await api('/api/auth/create-staff', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('newStaffName').value,
+          password: document.getElementById('newStaffPassword').value,
+          role: document.getElementById('newStaffRole').value,
+        }),
+      });
+      msgEl.style.color = '#2C6350';
+      msgEl.textContent = `Created ${staff.role} account "${staff.name}".`;
+      document.getElementById('newStaffName').value = '';
+      document.getElementById('newStaffPassword').value = '';
+    } catch (err) {
+      msgEl.style.color = '#C24E3D';
+      msgEl.textContent = err.message;
+    }
+  }
+
+  function exportCsv(){
+    // Direct navigation (not fetch) so the browser handles the file download,
+    // with the token passed as a query param since download links can't set headers.
+    window.open(`/api/export/sales.csv?token=${token}`, '_blank');
+  }
+
+  async function loadAudit(){
+    const entries = await api('/api/audit');
+    document.getElementById('auditBody').innerHTML = entries.map(a => `
+      <tr>
+        <td>${new Date(a.created_at).toLocaleString()}</td>
+        <td>${escapeHtml(a.staff_name)}</td>
+        <td>${a.action}</td>
+        <td>${a.target_type} #${a.target_id}</td>
+        <td>${escapeHtml(a.details) || ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadPendingTopups(){
+    const pending = await api('/api/wallet/pending-topups');
+    const badge = document.getElementById('topupBadge');
+    badge.textContent = pending.length > 0 ? pending.length : '';
+    badge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+
+    const methodLabel = { mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money' };
+    document.getElementById('pendingTopupsList').innerHTML = pending.length === 0
+      ? '<div style="color:var(--muted); font-size:0.85rem;">Nothing waiting on confirmation.</div>'
+      : pending.map(t => `
+        <div class="dispute-card">
+          <b>${escapeHtml(t.student_name)}</b> (${escapeHtml(t.reg_number)}) — UGX ${Number(t.amount).toLocaleString()} via ${methodLabel[t.method]}
+          <div style="font-size:0.78rem; color:var(--muted); margin-top:4px;">Requested ${new Date(t.created_at).toLocaleString()}</div>
+          <button class="da-resolve" style="margin-top:10px;" onclick="confirmTopup(${t.transaction_id})">✓ Confirm payment received</button>
+        </div>
+      `).join('');
+  }
+  async function confirmTopup(id){
+    await api(`/api/wallet/confirm-topup/${id}`, { method: 'POST' });
+    loadPendingTopups();
+  }
+  async function submitCashTopup(){
+    const msgEl = document.getElementById('cashTopupMessage');
+    try {
+      const result = await api('/api/wallet/admin-topup', {
+        method: 'POST',
+        body: JSON.stringify({
+          reg_number: document.getElementById('cashRegNumber').value,
+          amount: Number(document.getElementById('cashAmount').value),
+        }),
+      });
+      msgEl.style.color = '#2C6350';
+      msgEl.textContent = `Credited UGX ${result.amount.toLocaleString()} to ${result.student_name}.`;
+      document.getElementById('cashRegNumber').value = '';
+      document.getElementById('cashAmount').value = '';
+    } catch (err) {
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = err.message;
+    }
+  }
+</script>
+<div class="modal-overlay hidden" id="refundOverlay" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <h3>Refund this order?</h3>
+    <p id="refundText"></p>
+    <textarea id="refundReason" aria-label="Refund reason" placeholder="Reason (optional) — e.g. item unavailable, wrong order"></textarea>
+    <div class="modal-actions">
+      <button style="background:var(--paper-dim); color:var(--ink); box-shadow:none;" onclick="closeRefund()">Cancel</button>
+      <button style="background:var(--red);" onclick="confirmRefund()">Refund to wallet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+</body>
+</html>
