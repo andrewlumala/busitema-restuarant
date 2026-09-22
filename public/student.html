@@ -24,10 +24,18 @@
     --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif;
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
+  :root[data-theme="dark"] {
+    --green-100:#1F3A2E; --gold-100:#3A2E17; --teal-100:#173330; --red-100:#3A211D;
+    --ink:#F2EFE7; --paper:#17150F; --paper-dim:#1E1B14; --line:#34301F; --muted:#9A9484;
+  }
+  body, .item-card, .ticket, input, select { transition: background .25s ease, color .25s ease, border-color .25s ease; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); display:flex; justify-content:center; }
   .phone { width:100%; max-width:430px; min-height:100vh; padding: 0 0 40px; overflow-x:hidden; }
   .topbar { background:linear-gradient(135deg, var(--green-900), var(--green-700)); color:var(--paper); padding:18px 20px; position:relative; overflow:hidden; }
+  .theme-toggle { position:absolute; top:14px; left:16px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:999px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.95rem; z-index:2; transition: transform .15s ease, background .15s ease; }
+  .theme-toggle:hover { background:rgba(255,255,255,0.2); }
+  .theme-toggle:active { transform:scale(0.9); }
   .topbar::after { content:''; position:absolute; top:-40px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(227,168,87,0.15); }
   .brand { font-family:var(--font-display); font-weight:700; font-size:1.1rem; position:relative; z-index:1; }
   .brand span { color:var(--gold-500); }
@@ -40,6 +48,12 @@
     transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
   }
   input:focus, select:focus { outline:none; border-color:var(--green-600); box-shadow:0 0 0 3px var(--green-100); }
+
+  /* Visible focus ring for keyboard navigation — buttons/links have custom styling
+     that can suppress the browser default, so this restores it explicitly */
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--teal-500); outline-offset: 2px;
+  }
 
   button {
     width:100%; padding:13px; border:none; border-radius:10px; background:var(--green-700); color:var(--paper);
@@ -90,7 +104,7 @@
   .error { color:var(--red-500); font-size:0.85rem; margin-bottom:10px; }
 
   .ticket {
-    background:white; border:1px solid var(--line); border-radius:16px; padding:28px 24px; text-align:center;
+    background:var(--paper-dim); border:1px solid var(--line); border-radius:16px; padding:28px 24px; text-align:center;
     margin-top:20px; position:relative; overflow:hidden; box-shadow:0 8px 30px rgba(31,74,61,0.1);
     animation: ticketIn .5s var(--ease) both;
   }
@@ -148,6 +162,15 @@
   .merchant-box .mb-code { font-family:var(--font-display); font-weight:700; font-size:1.6rem; color:var(--green-700); }
   .merchant-box .mb-label { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.03em; }
 
+  .rate-line { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--line); }
+  .rate-line:last-child { border-bottom:none; }
+  .rate-line .rl-name { font-size:0.86rem; font-weight:600; }
+  .stars { display:flex; gap:3px; cursor:pointer; }
+  .stars .star { font-size:1.2rem; color:var(--line); transition: color .12s, transform .12s; }
+  .stars .star:hover { transform:scale(1.15); }
+  .stars .star.filled { color:var(--gold-500); }
+  .rate-submitted { font-size:0.78rem; color:var(--green-600); font-weight:600; }
+
   /* Splash screen */
   #splash {
     position:fixed; inset:0; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -190,17 +213,22 @@
   <div class="splash-dots"><span></span><span></span><span></span></div>
 </div>
 <div class="phone">
-  <div class="topbar"><a href="/" style="position:absolute; top:14px; right:16px; color:rgba(255,255,255,0.7); font-size:0.75rem; text-decoration:none; z-index:2;">← Home</a><div class="brand">Busitema <span>Restaurant</span></div></div>
+  <div class="topbar">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+    <button class="theme-toggle" id="langToggle" onclick="toggleLanguage()" aria-label="Switch language" style="left:54px;">EN</button>
+    <a href="/" aria-label="Back to role selection" style="position:absolute; top:14px; right:16px; color:rgba(255,255,255,0.7); font-size:0.75rem; text-decoration:none; z-index:2;">← Home</a>
+    <div class="brand">Busitema <span>Restaurant</span></div>
+  </div>
   <main>
 
     <div id="loginView" class="view">
-      <h2>Log in</h2>
+      <h2 data-i18n="login_title">Log in</h2>
       <div class="error hidden" id="loginError"></div>
-      <input id="regNumber" placeholder="Registration number">
-      <input id="password" type="password" placeholder="Password">
-      <button onclick="login()">Log in</button>
-      <div class="link" onclick="showRegister()">New here? Create an account</div>
-      <div class="link" onclick="startGuestCheckout()">Or continue as a guest →</div>
+      <input id="regNumber" placeholder="Registration number" data-i18n-placeholder="reg_number_ph">
+      <input id="password" type="password" placeholder="Password" data-i18n-placeholder="password_ph">
+      <button onclick="login()" data-i18n="login_btn">Log in</button>
+      <div class="link" onclick="showRegister()" data-i18n="new_here">New here? Create an account</div>
+      <div class="link" onclick="startGuestCheckout()" data-i18n="continue_guest">Or continue as a guest →</div>
       <div class="link" onclick="showForgotPassword()" style="font-size:0.78rem; opacity:0.75;">Forgot password?</div>
     </div>
 
@@ -229,30 +257,49 @@
     </div>
 
     <div id="registerView" class="hidden view">
-      <h2>Create account</h2>
+      <h2 data-i18n="register_title">Create account</h2>
       <div class="error hidden" id="registerError"></div>
-      <input id="regName" placeholder="Full name">
+      <input id="regName" placeholder="Full name" data-i18n-placeholder="full_name_ph">
       <input id="regRegNumber" placeholder="Registration number">
-      <input id="regPhone" placeholder="Phone number">
+      <input id="regPhone" placeholder="Phone number" data-i18n-placeholder="phone_ph">
       <input id="regPassword" type="password" placeholder="Password">
-      <button onclick="register()">Create account</button>
+      <button onclick="register()" data-i18n="register_btn">Create account</button>
       <div style="font-size:0.74rem; color:var(--muted); text-align:center; margin-top:10px;">By creating an account you agree to our <a href="/privacy.html" style="color:var(--green-700);" target="_blank">Privacy Notice</a>.</div>
-      <div class="link" onclick="showLogin()">Already have an account? Log in</div>
+      <div class="link" onclick="showLogin()" data-i18n="already_have">Already have an account? Log in</div>
     </div>
 
     <div id="menuView" class="hidden view">
-      <div class="wallet-line" id="walletLine">💰 Wallet balance: UGX <span id="walletBal">—</span> <span class="link" style="display:inline; margin:0 0 0 6px;" onclick="openTopup()">+ Top up</span></div>
-      <div class="link" style="text-align:left; margin:-6px 0 10px;" onclick="openOrderHistory()">📋 My past orders</div>
-      <div class="link" style="text-align:left; margin:-6px 0 14px; opacity:0.8;" onclick="openHelp()">❓ Need help?</div>
-      <h2>Menu</h2>
+      <div class="wallet-line" id="walletLine">💰 Wallet balance: UGX <span id="walletBal">—</span> <span class="link" style="display:inline; margin:0 0 0 6px;" onclick="openTopup()" role="button" tabindex="0" aria-label="Top up wallet">+ Top up</span></div>
+      <div class="link" style="text-align:left; margin:-6px 0 10px;" onclick="openOrderHistory()" role="button" tabindex="0" aria-label="View my past orders">📋 My past orders</div>
+      <div class="link" style="text-align:left; margin:-6px 0 14px; opacity:0.8;" onclick="openHelp()" role="button" tabindex="0" aria-label="Get help">❓ Need help?</div>
+      <h2 data-i18n="menu_title">Menu</h2>
       <input id="menuSearch" placeholder="🔍 Search the menu..." oninput="renderMenu()" style="margin-bottom:4px;">
       <div id="menuList"><div class="spinner"></div></div>
-      <select id="guestMethod" class="hidden" style="margin-top:14px;">
+      <button id="checkoutBtn" style="margin-top:16px;" onclick="openCheckout()" disabled>Add items to order</button>
+    </div>
+
+    <div id="checkoutView" class="hidden view">
+      <div class="link" style="text-align:left; margin-bottom:14px;" onclick="backToMenu()">← Back to menu</div>
+      <h2 data-i18n="your_order">Your order</h2>
+      <div id="checkoutLines" style="margin-bottom:14px;"></div>
+      <div style="border-top:1px solid var(--line); padding-top:10px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:1.05rem;">
+          <span>Total</span><span id="checkoutTotal">UGX 0</span>
+        </div>
+      </div>
+
+      <h2 style="font-size:0.95rem;" data-i18n="pickup_time">Pickup time</h2>
+      <div id="pickupOptions" style="margin-bottom:20px;"></div>
+
+      <h2 style="font-size:0.95rem;" data-i18n="pay_with">Pay with</h2>
+      <select id="guestMethod" class="hidden" style="margin-bottom:10px;">
         <option value="cash">Pay cash at counter</option>
         <option value="mtn_momo">MTN Mobile Money</option>
         <option value="airtel_money">Airtel Money</option>
       </select>
-      <button id="checkoutBtn" style="margin-top:16px;" onclick="placeOrder()" disabled>Add items to order</button>
+      <div id="walletPayNote" class="wallet-line" style="display:block;">Paying from your wallet balance: UGX <span id="checkoutWalletBal">—</span></div>
+
+      <button style="margin-top:16px;" onclick="placeOrder()" data-i18n="confirm_pay">Confirm & pay</button>
     </div>
 
     <div id="guestTicketView" class="hidden view">
@@ -274,6 +321,7 @@
       </div>
       <button id="cancelBtn" style="margin-top:12px; background:var(--red-500); box-shadow:0 2px 0 #a5382a;" onclick="cancelOrder()">Cancel order</button>
       <button style="margin-top:10px;" onclick="backToMenu()">Order more</button>
+      <div class="link" style="margin-top:14px; opacity:0.75;" onclick="currentOrderId && openDispute(currentOrderId)">⚠️ Report an issue with this order</div>
     </div>
 
     <div id="ordersView" class="hidden view">
@@ -287,7 +335,33 @@
 
 <div class="toast-stack" id="toastStack"></div>
 
-<div class="modal-overlay hidden" id="helpOverlay">
+<div class="modal-overlay hidden" id="disputeOverlay" role="dialog" aria-modal="true">
+  <div class="modal-sheet" id="disputeSheetContent">
+    <h3>Report an issue</h3>
+    <label style="font-size:0.78rem; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">What went wrong?</label>
+    <select id="disputeReason" aria-label="Reason for the issue">
+      <option value="wrong_item">Wrong item received</option>
+      <option value="missing_item">An item was missing</option>
+      <option value="never_received">Never received my order</option>
+      <option value="quality_issue">Food quality issue</option>
+      <option value="other">Something else</option>
+    </select>
+    <label style="font-size:0.78rem; font-weight:600; color:var(--muted); display:block; margin:10px 0 6px;">Details (optional)</label>
+    <textarea id="disputeDescription" aria-label="Additional details" placeholder="Tell us what happened..." style="width:100%; min-height:70px; border:1px solid var(--line); border-radius:9px; padding:11px; font-family:var(--font-body); font-size:0.88rem; background:var(--paper); color:var(--ink); resize:vertical;"></textarea>
+    <button onclick="submitDispute()" style="margin-top:14px;">Submit report</button>
+    <div class="link" onclick="closeDispute()" style="margin-top:10px;">Cancel</div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="ratingOverlay" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <h3>Rate your order</h3>
+    <div id="ratingLines"></div>
+    <div class="link" onclick="closeRating()" style="margin-top:14px;">Done</div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="helpOverlay" role="dialog" aria-modal="true">
   <div class="modal-sheet">
     <h3>Need help?</h3>
     <p style="font-size:0.88rem; color:var(--muted); line-height:1.6;">
@@ -298,7 +372,7 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="topupOverlay">
+<div class="modal-overlay hidden" id="topupOverlay" role="dialog" aria-modal="true">
   <div class="modal-sheet">
     <div id="topupStep1">
       <h3>Top up wallet</h3>
@@ -324,6 +398,72 @@
 </div>
 
 <script>
+  // Dark mode — applied immediately (not waiting for DOMContentLoaded) so there's no
+  // flash of the wrong theme on load. Wrapped in try/catch since localStorage can throw
+  // in some restricted/private-browsing contexts.
+  (function initTheme(){
+    try {
+      const saved = localStorage.getItem('busitema-theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').textContent = '☀️';
+      }
+    } catch {}
+  })();
+  function toggleTheme(){
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+    try { localStorage.setItem('busitema-theme', isDark ? 'light' : 'dark'); } catch {}
+  }
+
+  // Lightweight translation layer covering the static UI chrome (headings, buttons, nav).
+  // Scope note: menu item names, error messages, and toasts stay in English — those come
+  // from the database or server and would need a bigger backend i18n effort to translate.
+  const TRANSLATIONS = {
+    lg: {
+      login_title: 'Yingira', login_btn: 'Yingira',
+      new_here: 'Oli muggya wano? Tandika akawunti',
+      continue_guest: 'Oba genda ng\'omugenyi →',
+      register_title: 'Tandika akawunti', register_btn: 'Tandika akawunti',
+      already_have: 'Olina akawunti? Yingira',
+      menu_title: 'Emmere', your_order: 'Ebyo by\'osabye',
+      pickup_time: 'Ekiseera ky\'okutwala', pay_with: 'Sasula na',
+      confirm_pay: 'Kakasa & Sasula',
+      reg_number_ph: 'Nampala y\'ekiwandiiko', password_ph: 'Ekigambo ekyama',
+      full_name_ph: 'Erinnya lyonna', phone_ph: 'Ennamba ya ssimu',
+    },
+  };
+  function toggleLanguage(){
+    const current = document.getElementById('langToggle').textContent;
+    const next = current === 'EN' ? 'lg' : 'en';
+    document.getElementById('langToggle').textContent = next === 'lg' ? 'LG' : 'EN';
+    try { localStorage.setItem('busitema-lang', next); } catch {}
+    applyLanguage(next);
+  }
+  function applyLanguage(lang){
+    const dict = TRANSLATIONS[lang]; // undefined for 'en' — falls through to the original English text
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const original = el.getAttribute('data-i18n-original') || (el.setAttribute('data-i18n-original', el.textContent), el.textContent);
+      el.textContent = (dict && dict[key]) || original;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      const original = el.getAttribute('data-i18n-ph-original') || (el.setAttribute('data-i18n-ph-original', el.placeholder), el.placeholder);
+      el.placeholder = (dict && dict[key]) || original;
+    });
+  }
+  (function initLanguage(){
+    try {
+      const saved = localStorage.getItem('busitema-lang');
+      if (saved === 'lg') {
+        document.getElementById('langToggle').textContent = 'LG';
+        applyLanguage('lg');
+      }
+    } catch {}
+  })();
+
   // Same-origin — this page is served by the backend itself, so relative paths just work.
   const API_BASE = '';
   let token = null;
@@ -579,8 +719,64 @@
     if (btn) { btn.classList.add('added'); setTimeout(() => btn.classList.remove('added'), 350); }
   }
 
+  let selectedPickup = 'asap';
+
+  function pickupSlots(){
+    // Next four 15-minute slots, starting at least 20 minutes out
+    const slots = [];
+    const now = new Date();
+    let t = new Date(now.getTime() + 20 * 60000);
+    t.setMinutes(Math.ceil(t.getMinutes() / 15) * 15, 0, 0);
+    for (let i = 0; i < 4; i++) slots.push(new Date(t.getTime() + i * 15 * 60000));
+    return slots;
+  }
+
+  function renderPickupOptions(){
+    const slots = pickupSlots();
+    document.getElementById('pickupOptions').innerHTML = `
+      <div class="method-choice" style="flex-wrap:wrap;">
+        <button type="button" class="${selectedPickup === 'asap' ? 'selected' : ''}" onclick="selectPickup('asap')" style="flex:none; width:auto; padding:9px 16px;">⚡ ASAP</button>
+        ${slots.map(s => {
+          const iso = s.toISOString();
+          const label = s.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return `<button type="button" class="${selectedPickup === iso ? 'selected' : ''}" onclick="selectPickup('${iso}')" style="flex:none; width:auto; padding:9px 16px;">${label}</button>`;
+        }).join('')}
+      </div>
+    `;
+  }
+  function selectPickup(value){
+    selectedPickup = value;
+    renderPickupOptions();
+  }
+
+  function openCheckout(){
+    const items = Object.entries(cart).map(([item_id, quantity]) => {
+      const item = menu.find(m => m.item_id == item_id);
+      return { item_id: Number(item_id), quantity, name: item?.name, price: item?.price, subtotal: (item?.price || 0) * quantity };
+    });
+    const total = items.reduce((sum, i) => sum + i.subtotal, 0);
+
+    document.getElementById('checkoutLines').innerHTML = items.map(i => `
+      <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:0.9rem;">
+        <span>${i.quantity} × ${escapeHtml(i.name)}</span><span>${fmt(i.subtotal)}</span>
+      </div>
+    `).join('');
+    document.getElementById('checkoutTotal').textContent = fmt(total);
+
+    document.getElementById('guestMethod').classList.toggle('hidden', !isGuest);
+    document.getElementById('walletPayNote').classList.toggle('hidden', isGuest);
+    if (!isGuest) document.getElementById('checkoutWalletBal').textContent = document.getElementById('walletBal').textContent;
+
+    selectedPickup = 'asap';
+    renderPickupOptions();
+
+    document.getElementById('menuView').classList.add('hidden');
+    document.getElementById('checkoutView').classList.remove('hidden');
+  }
+
   async function placeOrder(){
     const items = Object.entries(cart).map(([item_id, quantity]) => ({ item_id: Number(item_id), quantity }));
+    const pickup_time = selectedPickup === 'asap' ? null : selectedPickup;
 
     if (isGuest) {
       try {
@@ -591,11 +787,12 @@
             guest_phone: document.getElementById('guestPhone').value.trim(),
             items,
             method: document.getElementById('guestMethod').value,
+            pickup_time,
             idempotency_key: crypto.randomUUID(),
           }),
         });
         cart = {};
-        document.getElementById('menuView').classList.add('hidden');
+        document.getElementById('checkoutView').classList.add('hidden');
         document.getElementById('guestTicketView').classList.remove('hidden');
         document.getElementById('guestQueueNum').textContent = 'B-' + order.queue_number;
         setStatusBanner('guestStatusBanner', order.message);
@@ -609,14 +806,14 @@
     try {
       const order = await api('/api/orders', {
         method: 'POST',
-        body: JSON.stringify({ items, method: 'wallet', idempotency_key: crypto.randomUUID() }),
+        body: JSON.stringify({ items, method: 'wallet', pickup_time, idempotency_key: crypto.randomUUID() }),
       });
       cart = {};
-      document.getElementById('menuView').classList.add('hidden');
+      document.getElementById('checkoutView').classList.add('hidden');
       document.getElementById('ticketView').classList.remove('hidden');
       document.getElementById('cancelBtn').classList.remove('hidden');
       document.getElementById('queueNum').textContent = 'B-' + order.queue_number;
-      setStatusBanner('statusBanner', 'Order placed — kitchen notified');
+      setStatusBanner('statusBanner', pickup_time ? `Order placed — pickup at ${new Date(pickup_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` : 'Order placed — kitchen notified');
       currentOrderId = order.order_id;
       loadWallet();
     } catch (err) {
@@ -662,6 +859,7 @@
   function backToMenu(){
     document.getElementById('ticketView').classList.add('hidden');
     document.getElementById('ordersView').classList.add('hidden');
+    document.getElementById('checkoutView').classList.add('hidden');
     document.getElementById('menuView').classList.remove('hidden');
     loadMenu();
     loadWallet();
@@ -692,7 +890,9 @@
           <div style="display:flex; gap:8px; width:100%;">
             <button style="flex:1; padding:8px; font-size:0.8rem;" onclick="reorderItems(${o.order_id})">↻ Reorder</button>
             <button style="flex:1; padding:8px; font-size:0.8rem; background:var(--paper-dim); color:var(--ink); box-shadow:none;" onclick="printReceipt(${o.order_id})">🧾 Receipt</button>
+            ${o.order_status === 'served' ? `<button style="flex:1; padding:8px; font-size:0.8rem; background:var(--gold-500); color:var(--green-900); box-shadow:none;" onclick="openRating(${o.order_id})">⭐ Rate</button>` : ''}
           </div>
+          <div class="link" style="font-size:0.75rem; margin-top:8px; opacity:0.75;" onclick="openDispute(${o.order_id})">⚠️ Report an issue with this order</div>
         </div>
       `).join('');
     } catch (err) {
@@ -711,6 +911,84 @@
       document.getElementById('menuView').classList.remove('hidden');
       await loadMenu();
       toast('Items added to your cart — review and check out', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
+  let disputeOrderId = null;
+  function openDispute(orderId){
+    disputeOrderId = orderId;
+    document.getElementById('disputeReason').value = 'wrong_item';
+    document.getElementById('disputeDescription').value = '';
+    document.getElementById('disputeOverlay').classList.remove('hidden');
+  }
+  function closeDispute(){
+    document.getElementById('disputeOverlay').classList.add('hidden');
+  }
+  async function submitDispute(){
+    try {
+      await api('/api/disputes', {
+        method: 'POST',
+        body: JSON.stringify({
+          order_id: disputeOrderId,
+          reason: document.getElementById('disputeReason').value,
+          description: document.getElementById('disputeDescription').value.trim() || null,
+        }),
+      });
+      closeDispute();
+      toast('Report submitted — the restaurant has been notified', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
+  let ratingOrderId = null;
+  let ratingItems = [];
+  let existingRatings = {};
+
+  async function openRating(orderId){
+    ratingOrderId = orderId;
+    document.getElementById('ratingOverlay').classList.remove('hidden');
+    document.getElementById('ratingLines').innerHTML = '<div class="spinner"></div>';
+    try {
+      const [receipt, ratings] = await Promise.all([
+        api(`/api/orders/${orderId}/receipt`),
+        api(`/api/ratings/order/${orderId}`),
+      ]);
+      ratingItems = receipt.items;
+      existingRatings = {};
+      ratings.forEach(r => { existingRatings[r.item_id] = r.stars; });
+      renderRatingLines();
+    } catch (err) {
+      toast(err.message, 'error');
+      closeRating();
+    }
+  }
+  function closeRating(){
+    document.getElementById('ratingOverlay').classList.add('hidden');
+  }
+  function renderRatingLines(){
+    document.getElementById('ratingLines').innerHTML = ratingItems.map(item => {
+      const stars = existingRatings[item.item_id];
+      return `
+        <div class="rate-line">
+          <div class="rl-name">${escapeHtml(item.name)}</div>
+          ${stars ? `<div class="rate-submitted">Rated ${stars}★ — thanks!</div>` : `
+            <div class="stars">
+              ${[1,2,3,4,5].map(n => `<span class="star" onclick="rateItem(${item.item_id},${n})">★</span>`).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }).join('');
+  }
+  async function rateItem(itemId, stars){
+    try {
+      await api('/api/ratings', { method: 'POST', body: JSON.stringify({ order_id: ratingOrderId, item_id: itemId, stars }) });
+      existingRatings[itemId] = stars;
+      renderRatingLines();
+      toast('Thanks for rating!', 'success');
     } catch (err) {
       toast(err.message, 'error');
     }
@@ -758,6 +1036,10 @@
         setStatusBanner('statusBanner', statusText[payload.status]);
         document.getElementById('cancelBtn').classList.add('hidden'); // once kitchen has acted, self-cancel is no longer offered
       }
+    });
+    socket.on('dispute:resolved', (payload) => {
+      const verb = payload.status === 'resolved' ? 'resolved' : 'reviewed';
+      toast(`Your reported issue was ${verb}${payload.resolution_note ? ': ' + payload.resolution_note : ''}`, payload.status === 'resolved' ? 'success' : 'info');
     });
   }
 </script>

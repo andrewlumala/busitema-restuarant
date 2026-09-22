@@ -73,8 +73,8 @@ module.exports = function (io) {
           const walletResult = await client.query(`SELECT wallet_id FROM wallets WHERE student_id = $1 FOR UPDATE`, [dispute.student_id]);
           await client.query(`UPDATE wallets SET balance = balance + $1 WHERE wallet_id = $2`, [order.total, walletResult.rows[0].wallet_id]);
           await client.query(
-            `INSERT INTO transactions (wallet_id, amount, type, method, status) VALUES ($1, $2, 'refund', 'wallet', 'success')`,
-            [walletResult.rows[0].wallet_id, order.total]
+            `INSERT INTO transactions (wallet_id, amount, type, method, status, order_id) VALUES ($1, $2, 'refund', 'wallet', 'success', $3)`,
+            [walletResult.rows[0].wallet_id, order.total, dispute.order_id]
           );
           await client.query(`UPDATE orders SET payment_status = 'refunded', refund_reason = $1 WHERE order_id = $2`, [resolution_note || 'Dispute resolved with refund', dispute.order_id]);
         }

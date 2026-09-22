@@ -34,6 +34,7 @@ CREATE TABLE transactions (
   method           VARCHAR(20) NOT NULL CHECK (method IN ('wallet', 'mtn_momo', 'airtel_money', 'cash')),
   status          VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
   external_ref    VARCHAR(100),          -- provider transaction id (mobile money)
+  order_id        INTEGER REFERENCES orders(order_id), -- links order_payment/refund rows to their order; NULL for top-ups
   created_at      TIMESTAMP DEFAULT NOW()
 );
 
@@ -57,6 +58,9 @@ CREATE TABLE orders (
   payment_status  VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending','paid','failed','refunded')),
   order_status    VARCHAR(20) NOT NULL DEFAULT 'placed' CHECK (order_status IN ('placed','preparing','ready','served','cancelled')),
   pickup_time     TIMESTAMP,           -- NULL means ASAP; otherwise a scheduled pickup slot
+  preparing_at    TIMESTAMP,           -- when order_status became 'preparing' — powers avg prep time
+  ready_at        TIMESTAMP,           -- when order_status became 'ready'
+  served_at       TIMESTAMP,
   refund_reason   TEXT,
   external_ref    VARCHAR(100),        -- mobile money provider reference, for guest orders (no wallet transaction row)
   idempotency_key VARCHAR(100) UNIQUE, -- prevents a double-tapped "Pay" button from creating two orders

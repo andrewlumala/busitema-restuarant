@@ -17,6 +17,7 @@ const disputesRoutesFactory = require('./routes/disputes');
 const transactionsRoutes = require('./routes/transactions');
 const auditRoutes = require('./routes/audit');
 const exportRoutes = require('./routes/export');
+const overviewRoutes = require('./routes/overview');
 const initSockets = require('./sockets');
 
 const app = express();
@@ -32,7 +33,9 @@ if (allowedOrigin === '*') {
 const io = new Server(server, { cors: { origin: allowedOrigin } });
 
 app.use(cors({ origin: allowedOrigin }));
-app.use(express.json());
+// Default 100kb limit is too small for base64-encoded menu photos (see admin.html's
+// photo upload, which resizes client-side but still needs headroom)
+app.use(express.json({ limit: '2mb' }));
 
 // Request logging — 'combined' format includes response status and timing, useful for
 // spotting problems in Railway/Render logs without needing a separate monitoring tool.
@@ -71,6 +74,7 @@ app.use('/api/disputes', disputesRoutesFactory(io));
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/overview', overviewRoutes);
 
 // Serves the connected frontend pages (public/student.html, kitchen.html, admin.html) —
 // same origin as the API, so no CORS/CSP issues like the published Claude artifact demos have.

@@ -101,8 +101,8 @@ module.exports = function (io) {
         const walletResult = await client.query(`SELECT wallet_id FROM wallets WHERE student_id = $1 FOR UPDATE`, [req.user.student_id]);
         await client.query(`UPDATE wallets SET balance = balance - $1 WHERE wallet_id = $2`, [total, walletResult.rows[0].wallet_id]);
         await client.query(
-          `INSERT INTO transactions (wallet_id, amount, type, method, status) VALUES ($1, $2, 'order_payment', 'wallet', 'success')`,
-          [walletResult.rows[0].wallet_id, total]
+          `INSERT INTO transactions (wallet_id, amount, type, method, status, order_id) VALUES ($1, $2, 'order_payment', 'wallet', 'success', $3)`,
+          [walletResult.rows[0].wallet_id, total, order_id]
         );
         await client.query(`UPDATE orders SET payment_status = 'paid' WHERE order_id = $1`, [order_id]);
         payment_status = 'paid';
@@ -178,8 +178,9 @@ module.exports = function (io) {
   // PATCH /api/orders/:id/status — kitchen advances an order's status
   router.patch('/:id/status', requireAuth, requireRole('kitchen', 'cashier', 'admin'), async (req, res) => {
     const { status } = req.body; // 'preparing' | 'ready' | 'served'
+    const timestampColumn = { preparing: 'preparing_at', ready: 'ready_at', served: 'served_at' }[status];
     const result = await pool.query(
-      `UPDATE orders SET order_status = $1 WHERE order_id = $2
+      `UPDATE orders SET order_status = $1${timestampColumn ? `, ${timestampColumn} = NOW()` : ''} WHERE order_id = $2
        RETURNING order_id, student_id, guest_name, guest_phone, order_status`,
       [status, req.params.id]
     );
@@ -287,8 +288,8 @@ module.exports = function (io) {
       // method — this avoids re-triggering a mobile money payout for a small refund.
       await client.query(`UPDATE wallets SET balance = balance + $1 WHERE wallet_id = $2`, [order.total, wallet.wallet_id]);
       await client.query(
-        `INSERT INTO transactions (wallet_id, amount, type, method, status) VALUES ($1, $2, 'refund', 'wallet', 'success')`,
-        [wallet.wallet_id, order.total]
+        `INSERT INTO transactions (wallet_id, amount, type, method, status, order_id) VALUES ($1, $2, 'refund', 'wallet', 'success', $3)`,
+        [wallet.wallet_id, order.total, order.order_id]
       );
       await client.query(
         `UPDATE orders SET payment_status = 'refunded', order_status = 'cancelled', refund_reason = $1 WHERE order_id = $2`,
@@ -371,8 +372,8 @@ module.exports = function (io) {
         const walletResult = await client.query(`SELECT wallet_id FROM wallets WHERE student_id = $1 FOR UPDATE`, [order.student_id]);
         await client.query(`UPDATE wallets SET balance = balance + $1 WHERE wallet_id = $2`, [order.total, walletResult.rows[0].wallet_id]);
         await client.query(
-          `INSERT INTO transactions (wallet_id, amount, type, method, status) VALUES ($1, $2, 'refund', 'wallet', 'success')`,
-          [walletResult.rows[0].wallet_id, order.total]
+          `INSERT INTO transactions (wallet_id, amount, type, method, status, order_id) VALUES ($1, $2, 'refund', 'wallet', 'success', $3)`,
+          [walletResult.rows[0].wallet_id, order.total, order.order_id]
         );
       }
 
