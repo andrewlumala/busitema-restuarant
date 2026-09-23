@@ -34,7 +34,7 @@ CREATE TABLE transactions (
   method           VARCHAR(20) NOT NULL CHECK (method IN ('wallet', 'mtn_momo', 'airtel_money', 'cash')),
   status          VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
   external_ref    VARCHAR(100),          -- provider transaction id (mobile money)
-  order_id        INTEGER REFERENCES orders(order_id), -- links order_payment/refund rows to their order; NULL for top-ups
+  order_id        INTEGER, -- links order_payment/refund rows to their order; NULL for top-ups. FK added via ALTER TABLE below (orders doesn't exist yet at this point in the file)
   created_at      TIMESTAMP DEFAULT NOW()
 );
 
@@ -124,3 +124,7 @@ CREATE INDEX idx_txn_wallet ON transactions(wallet_id);
 CREATE INDEX idx_ratings_item ON ratings(item_id);
 CREATE INDEX idx_disputes_status ON disputes(status);
 CREATE INDEX idx_audit_created ON audit_log(created_at);
+
+-- Added here (not inline on the transactions table above) because transactions is
+-- created before orders in this file, and orders doesn't exist yet at that point.
+ALTER TABLE transactions ADD CONSTRAINT fk_transactions_order FOREIGN KEY (order_id) REFERENCES orders(order_id);
