@@ -6,7 +6,7 @@
 <title>Busitema Restaurant</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjY0IiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUY0QTNEIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE2MzMyQSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjIgMThjMCA0LTMgNC0zIDhzMyA0IDMgOCIgc3Ryb2tlPSIjRjVGMUU3IiBzdHJva2Utd2lkdGg9IjIuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTMyIDE2YzAgNC0zIDQtMyA4czMgNCAzIDgiIHN0cm9rZT0iI0Y1RjFFNyIgc3Ryb2tlLXdpZHRoPSIyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MiAxOGMwIDQtMyA0LTMgOHMzIDQgMyA4IiBzdHJva2U9IiNGNUYxRTciIHN0cm9rZS13aWR0aD0iMi42IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0NCIgcng9IjE5IiByeT0iNyIgZmlsbD0iI0UzQTg1NyIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQyLjUiIHJ4PSIxOSIgcnk9IjYiIGZpbGw9IiNFRkMwNzkiLz4KPC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root {
     --green-900:#16332A; --green-700:#1F4A3D; --green-600:#2C6350;
@@ -21,8 +21,18 @@
     background: linear-gradient(160deg, var(--green-900), var(--green-700) 60%, var(--green-600));
     font-family: var(--font-body); padding: 24px; text-align:center;
   }
-  .brand { font-family: var(--font-display); font-weight:700; font-size:1.8rem; color:var(--paper); margin-bottom:4px; animation: fadeIn .5s var(--ease) both; }
-  .brand span { color: var(--gold-500); }
+  .brand { display:flex; flex-direction:column; align-items:center; margin-bottom:6px; }
+  .brand-script {
+    font-family:'Great Vibes',cursive; font-size:3.4rem; line-height:1;
+    background:linear-gradient(90deg, #F4D06F 0%, #E3A857 35%, #6EC6B8 70%, #F4D06F 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#E3A857;
+    animation: fadeIn .5s var(--ease) both;
+  }
+  .brand-sub {
+    font-family: var(--font-display); font-weight:700; font-size:0.85rem; letter-spacing:0.3em;
+    color:rgba(255,255,255,0.85); text-transform:uppercase; margin-top:2px;
+    animation: fadeIn .5s .08s var(--ease) both;
+  }
   .tagline { color: rgba(255,255,255,0.65); font-size:0.9rem; margin-bottom: 40px; animation: fadeIn .5s .1s var(--ease) both; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
 
@@ -50,7 +60,7 @@
 </style>
 </head>
 <body>
-  <div class="brand">Busitema <span>Restaurant</span></div>
+  <div class="brand"><div class="brand-script">Busitema</div><div class="brand-sub">Restaurant</div></div>
   <div class="tagline">Skip the line. Order ahead.</div>
 
   <div class="roles">

@@ -13,7 +13,7 @@
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;1,700&display=swap" rel="stylesheet">
 <style>
   :root {
     --green-900:#16332A; --green-700:#1F4A3D; --green-600:#2C6350; --green-100:#DCEDE5;
@@ -37,8 +37,14 @@
   .theme-toggle:hover { background:rgba(255,255,255,0.2); }
   .theme-toggle:active { transform:scale(0.9); }
   .topbar::after { content:''; position:absolute; top:-40px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(227,168,87,0.15); }
-  .brand { font-family:var(--font-display); font-weight:700; font-size:1.1rem; position:relative; z-index:1; }
-  .brand span { color:var(--gold-500); }
+  .brand { position:relative; z-index:1; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .brand-script {
+    font-family:'Great Vibes',cursive; font-size:2.1rem; line-height:1;
+    background:linear-gradient(90deg, #F4D06F 0%, #E3A857 35%, #6EC6B8 70%, #F4D06F 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#E3A857;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+  }
+  .brand-sub { font-family:var(--font-display); font-weight:700; font-size:0.72rem; letter-spacing:0.22em; color:rgba(255,255,255,0.85); text-transform:uppercase; align-self:flex-end; margin-bottom:4px; }
   main { padding: 20px; }
   h2 { font-family:var(--font-display); font-size:1.1rem; }
 
@@ -89,6 +95,54 @@
   }
   .category-header:first-child { margin-top:2px; }
   .category-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  /* Category filter chips */
+  .chip-row { display:flex; gap:8px; overflow-x:auto; padding:4px 2px 14px; scrollbar-width:none; }
+  .chip-row::-webkit-scrollbar { display:none; }
+  .chip {
+    flex-shrink:0; padding:8px 16px; border-radius:999px; font-size:0.82rem; font-weight:700; cursor:pointer;
+    border:1.5px solid var(--line); background:var(--paper); color:var(--ink);
+    transition: all .18s var(--ease); white-space:nowrap;
+  }
+  .chip:hover { transform:translateY(-1px); }
+  .chip.active { color:white; border-color:transparent; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+
+  /* Colorful menu card grid */
+  .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .menu-card {
+    position:relative; border-radius:18px; overflow:hidden; background:var(--paper-dim);
+    border:1px solid var(--line); transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+    animation: itemIn .4s var(--ease) both; display:flex; flex-direction:column;
+  }
+  .menu-card:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgba(31,74,61,0.15); }
+  .menu-card:active { transform:scale(0.98); }
+  .menu-card.sold-out { opacity:0.5; }
+  .menu-card-photo {
+    width:100%; aspect-ratio:1/0.85; object-fit:cover; background:linear-gradient(135deg, var(--paper-dim), var(--line));
+    display:flex; align-items:center; justify-content:center; font-size:2rem;
+  }
+  .menu-card-accent { height:4px; width:100%; }
+  .menu-card-body { padding:10px 12px 12px; flex:1; display:flex; flex-direction:column; }
+  .menu-card-name { font-weight:700; font-size:0.88rem; line-height:1.25; margin-bottom:4px; }
+  .menu-card-foot { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:6px; }
+  .menu-card-price { font-family:var(--font-display); font-weight:700; font-size:0.9rem; color:var(--green-700); }
+  .menu-card-add {
+    width:30px; height:30px; border-radius:50%; border:none; background:var(--green-700); color:white;
+    font-size:1.1rem; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+    transition: transform .15s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .menu-card-add:hover { background:var(--green-600); }
+  .menu-card-add:active { transform:scale(0.85); }
+  .menu-card-qty-badge {
+    position:absolute; top:8px; right:8px; background:var(--gold-500); color:var(--green-900);
+    font-family:var(--font-display); font-weight:700; font-size:0.78rem; min-width:22px; height:22px;
+    border-radius:11px; display:flex; align-items:center; justify-content:center; padding:0 6px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.2); animation: qtyPop .3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .menu-card-sold-out-tag {
+    position:absolute; top:8px; left:8px; background:rgba(217,97,79,0.92); color:white; font-size:0.65rem;
+    font-weight:700; padding:3px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:0.03em;
+  }
 
   .qty-btn {
     width:34px; height:34px; border-radius:50%; background:var(--green-700); color:white; border:none;
@@ -186,8 +240,13 @@
   .splash-icon svg { width:52px; height:52px; }
   @keyframes splashIconIn { from { opacity:0; transform:scale(0.6) translateY(10px);} to { opacity:1; transform:scale(1) translateY(0);} }
   @keyframes splashFloat { 0%,100% { transform:translateY(0);} 50% { transform:translateY(-6px);} }
-  .splash-title { font-family:var(--font-display); font-weight:700; font-size:1.5rem; color:var(--paper); animation: splashTextIn .6s .2s var(--ease) both; }
-  .splash-title span { color:var(--gold-500); }
+  .splash-title {
+    font-family:'Great Vibes',cursive; font-size:3.2rem; line-height:1;
+    background:linear-gradient(90deg, #F4D06F 0%, #E3A857 35%, #6EC6B8 70%, #F4D06F 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#E3A857;
+    animation: splashTextIn .6s .2s var(--ease) both;
+  }
+  .splash-title-sub { font-family:var(--font-display); font-weight:700; font-size:0.85rem; letter-spacing:0.28em; color:rgba(255,255,255,0.85); text-transform:uppercase; margin-top:2px; animation: splashTextIn .6s .3s var(--ease) both; }
   .splash-tagline { font-size:0.85rem; color:rgba(255,255,255,0.65); margin-top:6px; animation: splashTextIn .6s .35s var(--ease) both; }
   @keyframes splashTextIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
   .splash-dots { display:flex; gap:6px; margin-top:28px; animation: splashTextIn .6s .5s var(--ease) both; }
@@ -208,7 +267,8 @@
       <ellipse cx="32" cy="42.5" rx="19" ry="6" fill="#EFC079"/>
     </svg>
   </div>
-  <div class="splash-title">Busitema <span>Restaurant</span></div>
+  <div class="splash-title">Busitema</div>
+  <div class="splash-title-sub">Restaurant</div>
   <div class="splash-tagline">Skip the line. Order ahead.</div>
   <div class="splash-dots"><span></span><span></span><span></span></div>
 </div>
@@ -217,7 +277,7 @@
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
     <button class="theme-toggle" id="langToggle" onclick="toggleLanguage()" aria-label="Switch language" style="left:54px;">EN</button>
     <a href="/" aria-label="Back to role selection" style="position:absolute; top:14px; right:16px; color:rgba(255,255,255,0.7); font-size:0.75rem; text-decoration:none; z-index:2;">← Home</a>
-    <div class="brand">Busitema <span>Restaurant</span></div>
+    <div class="brand"><span class="brand-script">Busitema</span><span class="brand-sub">Restaurant</span></div>
   </div>
   <main>
 
@@ -274,6 +334,7 @@
       <div class="link" style="text-align:left; margin:-6px 0 14px; opacity:0.8;" onclick="openHelp()" role="button" tabindex="0" aria-label="Get help">❓ Need help?</div>
       <h2 data-i18n="menu_title">Menu</h2>
       <input id="menuSearch" placeholder="🔍 Search the menu..." oninput="renderMenu()" style="margin-bottom:4px;">
+      <div class="chip-row" id="chipRow"></div>
       <div id="menuList"><div class="spinner"></div></div>
       <button id="checkoutBtn" style="margin-top:16px;" onclick="openCheckout()" disabled>Add items to order</button>
     </div>
@@ -669,41 +730,67 @@
     renderMenu();
   }
 
-  const CATEGORY_COLORS = { Main: 'var(--green-600)', Snacks: 'var(--gold-500)', Drinks: 'var(--teal-500)' };
-  function categoryColor(cat){ return CATEGORY_COLORS[cat] || 'var(--muted)'; }
+  const CATEGORY_COLORS = {
+    Main: { solid:'#2C6350', a:'#2C6350', b:'#1F4A3D' },
+    Snacks: { solid:'#C98F3E', a:'#E3A857', b:'#C98F3E' },
+    Drinks: { solid:'#2E9B8F', a:'#3EBBAC', b:'#2E9B8F' },
+  };
+  const CATEGORY_ICON = { Main: '🍛', Snacks: '🥟', Drinks: '🥤' };
+  function categoryStyle(cat){ return CATEGORY_COLORS[cat] || { solid:'#8A8474', a:'#8A8474', b:'#6b6658' }; }
+
+  let selectedCategory = 'All';
+  function selectCategory(cat){
+    selectedCategory = cat;
+    renderMenu();
+  }
+
+  function renderChips(){
+    const categories = [...new Set(menu.map(i => i.category))];
+    const all = ['All', ...categories];
+    document.getElementById('chipRow').innerHTML = all.map(cat => {
+      const style = cat === 'All' ? { solid: 'var(--ink)' } : categoryStyle(cat);
+      const active = selectedCategory === cat;
+      return `<div class="chip ${active ? 'active' : ''}" style="${active ? `background:${style.solid}; border-color:${style.solid};` : ''}" onclick="selectCategory('${cat}')">${cat === 'All' ? '🍽️ All' : (CATEGORY_ICON[cat] || '') + ' ' + cat}</div>`;
+    }).join('');
+  }
 
   function renderMenu(){
     const el = document.getElementById('menuList');
     if (menu.length === 0) { el.innerHTML = '<div class="spinner"></div>'; return; }
+    renderChips();
 
     const query = (document.getElementById('menuSearch')?.value || '').trim().toLowerCase();
-    const visibleMenu = query ? menu.filter(item => item.name.toLowerCase().includes(query)) : menu;
+    let visibleMenu = query ? menu.filter(item => item.name.toLowerCase().includes(query)) : menu;
+    if (selectedCategory !== 'All') visibleMenu = visibleMenu.filter(item => item.category === selectedCategory);
 
     if (visibleMenu.length === 0) {
       el.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:0.9rem;">No items match your search.</div>';
       return;
     }
 
-    const categories = [...new Set(visibleMenu.map(i => i.category))];
-    let i = 0;
-    el.innerHTML = categories.map(cat => `
-      <div class="category-header"><span class="category-dot" style="background:${categoryColor(cat)}"></span>${cat}</div>
-      ${visibleMenu.filter(item => item.category === cat).map(item => {
-        const delay = (i++ * 0.04).toFixed(2);
-        return `
-        <div class="item-card" style="animation-delay:${delay}s">
-          <div class="item-info">
-            ${item.image_url ? `<img class="item-photo" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">` : ''}
-            <div>
-              <div class="item-name">${escapeHtml(item.name)} ${!item.available ? '<span style="color:var(--red-500); font-size:0.75rem;">(sold out)</span>' : ''}</div>
-              <div class="item-price">${fmt(item.price)}</div>
+    el.innerHTML = `<div class="menu-grid">${visibleMenu.map((item, i) => {
+      const style = categoryStyle(item.category);
+      const delay = (i * 0.045).toFixed(2);
+      const qty = cart[item.item_id] || 0;
+      return `
+        <div class="menu-card ${!item.available ? 'sold-out' : ''}" style="animation-delay:${delay}s" onclick="${item.available ? `addToCart(${item.item_id})` : ''}">
+          ${item.image_url
+            ? `<img class="menu-card-photo" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" style="aspect-ratio:1/0.85;">`
+            : `<div class="menu-card-photo" style="background:linear-gradient(135deg, ${style.a}22, ${style.b}33);">${CATEGORY_ICON[item.category] || '🍽️'}</div>`
+          }
+          <div class="menu-card-accent" style="background:linear-gradient(90deg, ${style.a}, ${style.b});"></div>
+          ${!item.available ? '<div class="menu-card-sold-out-tag">Sold out</div>' : ''}
+          ${qty > 0 ? `<div class="menu-card-qty-badge" id="qty-${item.item_id}">${qty}</div>` : ''}
+          <div class="menu-card-body">
+            <div class="menu-card-name">${escapeHtml(item.name)}</div>
+            <div class="menu-card-foot">
+              <span class="menu-card-price">${fmt(item.price)}</span>
+              ${item.available ? `<button class="menu-card-add" onclick="event.stopPropagation(); addToCart(${item.item_id})" aria-label="Add ${escapeHtml(item.name)}">+</button>` : ''}
             </div>
           </div>
-          ${item.available ? `<button class="qty-btn" id="qty-${item.item_id}" style="width:auto; padding:6px 14px; border-radius:8px;" onclick="addToCart(${item.item_id})">${cart[item.item_id] ? cart[item.item_id] + ' +' : 'Add'}</button>` : ''}
         </div>
       `;
-      }).join('')}
-    `).join('');
+    }).join('')}</div>`;
 
     const count = Object.values(cart).reduce((a,b) => a+b, 0);
     const btn = document.getElementById('checkoutBtn');
@@ -714,9 +801,8 @@
   function addToCart(itemId){
     cart[itemId] = (cart[itemId] || 0) + 1;
     renderMenu();
-    // Re-trigger the pop animation on the button just tapped (DOM node is fresh after renderMenu)
-    const btn = document.getElementById('qty-' + itemId);
-    if (btn) { btn.classList.add('added'); setTimeout(() => btn.classList.remove('added'), 350); }
+    const badge = document.getElementById('qty-' + itemId);
+    if (badge) { badge.classList.add('added'); setTimeout(() => badge.classList.remove('added'), 350); }
   }
 
   let selectedPickup = 'asap';
