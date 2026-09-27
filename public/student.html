@@ -275,20 +275,19 @@
 <div class="phone">
   <div class="topbar">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
-    <button class="theme-toggle" id="langToggle" onclick="toggleLanguage()" aria-label="Switch language" style="left:54px;">EN</button>
     <a href="/" aria-label="Back to role selection" style="position:absolute; top:14px; right:16px; color:rgba(255,255,255,0.7); font-size:0.75rem; text-decoration:none; z-index:2;">← Home</a>
     <div class="brand"><span class="brand-script">Busitema</span><span class="brand-sub">Restaurant</span></div>
   </div>
   <main>
 
     <div id="loginView" class="view">
-      <h2 data-i18n="login_title">Log in</h2>
+      <h2>Log in</h2>
       <div class="error hidden" id="loginError"></div>
-      <input id="regNumber" placeholder="Registration number" data-i18n-placeholder="reg_number_ph">
-      <input id="password" type="password" placeholder="Password" data-i18n-placeholder="password_ph">
-      <button onclick="login()" data-i18n="login_btn">Log in</button>
-      <div class="link" onclick="showRegister()" data-i18n="new_here">New here? Create an account</div>
-      <div class="link" onclick="startGuestCheckout()" data-i18n="continue_guest">Or continue as a guest →</div>
+      <input id="regNumber" placeholder="Registration number">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="login()">Log in</button>
+      <div class="link" onclick="showRegister()">New here? Create an account</div>
+      <div class="link" onclick="startGuestCheckout()">Or continue as a guest →</div>
       <div class="link" onclick="showForgotPassword()" style="font-size:0.78rem; opacity:0.75;">Forgot password?</div>
     </div>
 
@@ -317,22 +316,22 @@
     </div>
 
     <div id="registerView" class="hidden view">
-      <h2 data-i18n="register_title">Create account</h2>
+      <h2>Create account</h2>
       <div class="error hidden" id="registerError"></div>
-      <input id="regName" placeholder="Full name" data-i18n-placeholder="full_name_ph">
+      <input id="regName" placeholder="Full name">
       <input id="regRegNumber" placeholder="Registration number">
-      <input id="regPhone" placeholder="Phone number" data-i18n-placeholder="phone_ph">
+      <input id="regPhone" placeholder="Phone number">
       <input id="regPassword" type="password" placeholder="Password">
-      <button onclick="register()" data-i18n="register_btn">Create account</button>
+      <button onclick="register()">Create account</button>
       <div style="font-size:0.74rem; color:var(--muted); text-align:center; margin-top:10px;">By creating an account you agree to our <a href="/privacy.html" style="color:var(--green-700);" target="_blank">Privacy Notice</a>.</div>
-      <div class="link" onclick="showLogin()" data-i18n="already_have">Already have an account? Log in</div>
+      <div class="link" onclick="showLogin()">Already have an account? Log in</div>
     </div>
 
     <div id="menuView" class="hidden view">
       <div class="wallet-line" id="walletLine">💰 Wallet balance: UGX <span id="walletBal">—</span> <span class="link" style="display:inline; margin:0 0 0 6px;" onclick="openTopup()" role="button" tabindex="0" aria-label="Top up wallet">+ Top up</span></div>
       <div class="link" style="text-align:left; margin:-6px 0 10px;" onclick="openOrderHistory()" role="button" tabindex="0" aria-label="View my past orders">📋 My past orders</div>
       <div class="link" style="text-align:left; margin:-6px 0 14px; opacity:0.8;" onclick="openHelp()" role="button" tabindex="0" aria-label="Get help">❓ Need help?</div>
-      <h2 data-i18n="menu_title">Menu</h2>
+      <h2>Menu</h2>
       <input id="menuSearch" placeholder="🔍 Search the menu..." oninput="renderMenu()" style="margin-bottom:4px;">
       <div class="chip-row" id="chipRow"></div>
       <div id="menuList"><div class="spinner"></div></div>
@@ -341,7 +340,7 @@
 
     <div id="checkoutView" class="hidden view">
       <div class="link" style="text-align:left; margin-bottom:14px;" onclick="backToMenu()">← Back to menu</div>
-      <h2 data-i18n="your_order">Your order</h2>
+      <h2>Your order</h2>
       <div id="checkoutLines" style="margin-bottom:14px;"></div>
       <div style="border-top:1px solid var(--line); padding-top:10px; margin-bottom:20px;">
         <div style="display:flex; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:1.05rem;">
@@ -349,10 +348,10 @@
         </div>
       </div>
 
-      <h2 style="font-size:0.95rem;" data-i18n="pickup_time">Pickup time</h2>
+      <h2 style="font-size:0.95rem;">Pickup time</h2>
       <div id="pickupOptions" style="margin-bottom:20px;"></div>
 
-      <h2 style="font-size:0.95rem;" data-i18n="pay_with">Pay with</h2>
+      <h2 style="font-size:0.95rem;">Pay with</h2>
       <select id="guestMethod" class="hidden" style="margin-bottom:10px;">
         <option value="cash">Pay cash at counter</option>
         <option value="mtn_momo">MTN Mobile Money</option>
@@ -360,7 +359,7 @@
       </select>
       <div id="walletPayNote" class="wallet-line" style="display:block;">Paying from your wallet balance: UGX <span id="checkoutWalletBal">—</span></div>
 
-      <button style="margin-top:16px;" onclick="placeOrder()" data-i18n="confirm_pay">Confirm & pay</button>
+      <button style="margin-top:16px;" onclick="placeOrder()">Confirm & pay</button>
     </div>
 
     <div id="guestTicketView" class="hidden view">
@@ -477,53 +476,6 @@
     document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
     try { localStorage.setItem('busitema-theme', isDark ? 'light' : 'dark'); } catch {}
   }
-
-  // Lightweight translation layer covering the static UI chrome (headings, buttons, nav).
-  // Scope note: menu item names, error messages, and toasts stay in English — those come
-  // from the database or server and would need a bigger backend i18n effort to translate.
-  const TRANSLATIONS = {
-    lg: {
-      login_title: 'Yingira', login_btn: 'Yingira',
-      new_here: 'Oli muggya wano? Tandika akawunti',
-      continue_guest: 'Oba genda ng\'omugenyi →',
-      register_title: 'Tandika akawunti', register_btn: 'Tandika akawunti',
-      already_have: 'Olina akawunti? Yingira',
-      menu_title: 'Emmere', your_order: 'Ebyo by\'osabye',
-      pickup_time: 'Ekiseera ky\'okutwala', pay_with: 'Sasula na',
-      confirm_pay: 'Kakasa & Sasula',
-      reg_number_ph: 'Nampala y\'ekiwandiiko', password_ph: 'Ekigambo ekyama',
-      full_name_ph: 'Erinnya lyonna', phone_ph: 'Ennamba ya ssimu',
-    },
-  };
-  function toggleLanguage(){
-    const current = document.getElementById('langToggle').textContent;
-    const next = current === 'EN' ? 'lg' : 'en';
-    document.getElementById('langToggle').textContent = next === 'lg' ? 'LG' : 'EN';
-    try { localStorage.setItem('busitema-lang', next); } catch {}
-    applyLanguage(next);
-  }
-  function applyLanguage(lang){
-    const dict = TRANSLATIONS[lang]; // undefined for 'en' — falls through to the original English text
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      const original = el.getAttribute('data-i18n-original') || (el.setAttribute('data-i18n-original', el.textContent), el.textContent);
-      el.textContent = (dict && dict[key]) || original;
-    });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-      const key = el.getAttribute('data-i18n-placeholder');
-      const original = el.getAttribute('data-i18n-ph-original') || (el.setAttribute('data-i18n-ph-original', el.placeholder), el.placeholder);
-      el.placeholder = (dict && dict[key]) || original;
-    });
-  }
-  (function initLanguage(){
-    try {
-      const saved = localStorage.getItem('busitema-lang');
-      if (saved === 'lg') {
-        document.getElementById('langToggle').textContent = 'LG';
-        applyLanguage('lg');
-      }
-    } catch {}
-  })();
 
   // Same-origin — this page is served by the backend itself, so relative paths just work.
   const API_BASE = '';
