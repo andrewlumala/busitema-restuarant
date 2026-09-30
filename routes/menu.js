@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/db');
 const { requireAuth, requireRole } = require('../config/auth-middleware');
+const { logAction } = require('../config/audit');
 
 const router = express.Router();
 
@@ -43,6 +44,25 @@ router.patch('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
   res.json(result.rows[0]);
+});
+
+// DELETE /api/menu/:id — admin removes an item permanently.
+// If it's ever been ordered, order_items has a foreign key row pointing at it,
+// so the delete is blocked (Postgres error 23503) rather than silently corrupting
+// past receipts/transactions — the admin gets a clear message to hide it instead.
+router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const result = await pool.query(`DELETE FROM menu_items WHERE item_id = $1 RETURNING item_id, name`, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+    await logAction({ staff_id: req.user.staff_id, action: 'menu_item_deleted', target_type: 'menu_item', target_id: result.rows[0].item_id, details: `Deleted "${result.rows[0].name}"` });
+    res.json({ deleted: true });
+  } catch (err) {
+    if (err.code === '23503') {
+      return res.status(409).json({ error: 'This item has already been ordered by students, so deleting it would break past order records. Mark it unavailable instead.' });
+    }
+    console.error(err);
+    res.status(500).json({ error: 'Could not delete item' });
+  }
 });
 
 module.exports = router;

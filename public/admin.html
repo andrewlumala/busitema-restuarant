@@ -162,7 +162,22 @@
 
     <div class="view" id="view-menu">
       <h2>Menu Management</h2>
-      <table><thead><tr><th>Photo</th><th>Item</th><th>Price</th><th>Stock</th><th>Available</th></tr></thead><tbody id="menuBody"></tbody></table>
+
+      <div style="max-width:380px; margin-bottom:22px; background:var(--paper-dim); border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 10px; font-family:var(--font-display); font-size:0.95rem;">Add new item</h3>
+        <input id="newItemName" placeholder="Item name">
+        <select id="newItemCategory" style="width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; margin-bottom:10px;">
+          <option value="Main">Main</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Drinks">Drinks</option>
+        </select>
+        <input id="newItemPrice" type="number" placeholder="Price (UGX)">
+        <input id="newItemStock" type="number" placeholder="Starting stock quantity">
+        <button onclick="createMenuItem()">Add to menu</button>
+        <div id="newItemMessage" style="font-size:0.85rem; margin-top:8px;"></div>
+      </div>
+
+      <table><thead><tr><th>Photo</th><th>Item</th><th>Price</th><th>Stock</th><th>Available</th><th></th></tr></thead><tbody id="menuBody"></tbody></table>
       <input type="file" id="photoFileInput" accept="image/*" class="hidden" onchange="handlePhotoFile()">
     </div>
     <div class="view" id="view-transactions">
@@ -369,6 +384,50 @@
     }
   }
 
+  async function createMenuItem(){
+    const msgEl = document.getElementById('newItemMessage');
+    const name = document.getElementById('newItemName').value.trim();
+    const price = Number(document.getElementById('newItemPrice').value);
+    if (!name || !price || price <= 0) {
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = 'Enter a name and a valid price.';
+      return;
+    }
+    try {
+      await api('/api/menu', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          category: document.getElementById('newItemCategory').value,
+          price,
+          stock_qty: Number(document.getElementById('newItemStock').value) || 0,
+        }),
+      });
+      msgEl.style.color = '#2C6350';
+      msgEl.textContent = `Added "${name}" to the menu.`;
+      document.getElementById('newItemName').value = '';
+      document.getElementById('newItemPrice').value = '';
+      document.getElementById('newItemStock').value = '';
+      loadMenu();
+    } catch (err) {
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = err.message;
+    }
+  }
+
+  async function deleteMenuItem(itemId){
+    if (!confirm('Remove this item from the menu permanently?')) return;
+    try {
+      await api(`/api/menu/${itemId}`, { method: 'DELETE' });
+      toast('Item removed', 'success');
+      loadMenu();
+    } catch (err) {
+      // If it's ever been ordered, the backend blocks the delete to protect past order
+      // records — the error message explains this, so just surface it as-is.
+      toast(err.message, 'error');
+    }
+  }
+
   async function loadMenu(){
     const items = await api('/api/menu');
     document.getElementById('menuBody').innerHTML = items.map(item => `
@@ -378,6 +437,7 @@
         <td>UGX ${Number(item.price).toLocaleString()}</td>
         <td>${item.stock_qty}</td>
         <td><span class="toggle ${item.available ? 'on' : ''}" onclick="toggleAvailable(${item.item_id}, ${!item.available})"></span></td>
+        <td><span style="color:var(--red); font-weight:700; font-size:0.8rem; cursor:pointer;" onclick="deleteMenuItem(${item.item_id})">Delete</span></td>
       </tr>
     `).join('');
   }
@@ -465,7 +525,12 @@
         <td>${t.method}</td>
         <td>UGX ${Number(t.amount).toLocaleString()}</td>
         <td>${t.status}</td>
-        <td>${refundable ? `<span class="link" style="color:var(--red); font-weight:700; font-size:0.8rem; cursor:pointer;" onclick="openRefund(${t.order_id})">Refund</span>` : (t.order_payment_status === 'refunded' ? '<span style="color:var(--muted); font-size:0.78rem;">Refunded</span>' : '')}</td>
+        <td>${
+          refundable ? `<span class="link" style="color:var(--red); font-weight:700; font-size:0.8rem; cursor:pointer;" onclick="openRefund(${t.order_id})">Refund</span>`
+          : t.order_payment_status === 'refunded' ? '<span style="color:var(--muted); font-size:0.78rem;">Refunded</span>'
+          : (t.status === 'pending' && t.type === 'topup') ? `<span class="link" style="color:var(--red); font-weight:700; font-size:0.8rem; cursor:pointer;" onclick="rejectTopup(${t.transaction_id})">Reject</span>`
+          : ''
+        }</td>
       </tr>
     `;
     }).join('');
@@ -552,9 +617,24 @@
         <div class="dispute-card">
           <b>${escapeHtml(t.student_name)}</b> (${escapeHtml(t.reg_number)}) — UGX ${Number(t.amount).toLocaleString()} via ${methodLabel[t.method]}
           <div style="font-size:0.78rem; color:var(--muted); margin-top:4px;">Requested ${new Date(t.created_at).toLocaleString()}</div>
-          <button class="da-resolve" style="margin-top:10px;" onclick="confirmTopup(${t.transaction_id})">✓ Confirm payment received</button>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="da-resolve" onclick="confirmTopup(${t.transaction_id})">✓ Confirm payment received</button>
+            <button class="da-refund" onclick="rejectTopup(${t.transaction_id})">✕ Reject</button>
+          </div>
         </div>
       `).join('');
+  }
+
+  async function rejectTopup(id){
+    if (!confirm('Reject this top-up request? This removes it permanently.')) return;
+    try {
+      await api(`/api/wallet/pending-topups/${id}`, { method: 'DELETE' });
+      toast('Request rejected', 'success');
+      loadPendingTopups();
+      if (document.getElementById('view-transactions').classList.contains('active')) loadTransactions();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
   }
   async function confirmTopup(id){
     await api(`/api/wallet/confirm-topup/${id}`, { method: 'POST' });

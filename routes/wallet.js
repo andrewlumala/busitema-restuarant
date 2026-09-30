@@ -114,6 +114,21 @@ router.post('/confirm-topup/:transactionId', requireAuth, requireRole('admin', '
   }
 });
 
+// DELETE /api/wallet/pending-topups/:transactionId — staff rejects/removes a pending
+// mobile-money top-up request (e.g. it never arrived, or was a duplicate/mistake).
+// Safe to hard-delete: a 'pending' row has never touched a wallet balance, so nothing
+// downstream references it. Only 'pending' rows can be deleted this way — a completed
+// top-up is real financial history and stays in the record.
+router.delete('/pending-topups/:transactionId', requireAuth, requireRole('admin', 'cashier'), async (req, res) => {
+  const result = await pool.query(
+    `DELETE FROM transactions WHERE transaction_id = $1 AND status = 'pending' RETURNING transaction_id, amount`,
+    [req.params.transactionId]
+  );
+  if (result.rows.length === 0) return res.status(404).json({ error: 'Pending request not found (it may have already been confirmed or removed)' });
+  await logAction({ staff_id: req.user.staff_id, action: 'topup_rejected', target_type: 'transaction', target_id: result.rows[0].transaction_id, details: `Rejected UGX ${result.rows[0].amount} pending top-up request` });
+  res.json({ deleted: true });
+});
+
 // POST /api/wallet/admin-topup — student hands cash directly to admin/cashier in person;
 // credited immediately since the staff member receiving the cash IS the confirmation.
 router.post('/admin-topup', requireAuth, requireRole('admin', 'cashier'), async (req, res) => {

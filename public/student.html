@@ -732,12 +732,19 @@
           }
           <div class="menu-card-accent" style="background:linear-gradient(90deg, ${style.a}, ${style.b});"></div>
           ${!item.available ? '<div class="menu-card-sold-out-tag">Sold out</div>' : ''}
-          ${qty > 0 ? `<div class="menu-card-qty-badge" id="qty-${item.item_id}">${qty}</div>` : ''}
           <div class="menu-card-body">
             <div class="menu-card-name">${escapeHtml(item.name)}</div>
             <div class="menu-card-foot">
               <span class="menu-card-price">${fmt(item.price)}</span>
-              ${item.available ? `<button class="menu-card-add" onclick="event.stopPropagation(); addToCart(${item.item_id})" aria-label="Add ${escapeHtml(item.name)}">+</button>` : ''}
+              ${item.available ? (
+                qty > 0
+                  ? `<div style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation();">
+                       <button class="menu-card-add" onclick="removeFromCart(${item.item_id})" aria-label="Remove one ${escapeHtml(item.name)}" style="background:var(--red-500);">−</button>
+                       <span style="font-family:var(--font-display); font-weight:700; font-size:0.85rem; min-width:14px; text-align:center;">${qty}</span>
+                       <button class="menu-card-add" onclick="addToCart(${item.item_id})" aria-label="Add another ${escapeHtml(item.name)}">+</button>
+                     </div>`
+                  : `<button class="menu-card-add" onclick="event.stopPropagation(); addToCart(${item.item_id})" aria-label="Add ${escapeHtml(item.name)}">+</button>`
+              ) : ''}
             </div>
           </div>
         </div>
@@ -753,8 +760,13 @@
   function addToCart(itemId){
     cart[itemId] = (cart[itemId] || 0) + 1;
     renderMenu();
-    const badge = document.getElementById('qty-' + itemId);
-    if (badge) { badge.classList.add('added'); setTimeout(() => badge.classList.remove('added'), 350); }
+  }
+
+  function removeFromCart(itemId){
+    if (!cart[itemId]) return;
+    cart[itemId]--;
+    if (cart[itemId] <= 0) delete cart[itemId];
+    renderMenu();
   }
 
   let selectedPickup = 'asap';
